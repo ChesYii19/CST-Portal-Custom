@@ -4,12 +4,19 @@ description: Express sessions don't persist unless you call req.session.save() a
 ---
 
 ## Rule
-In any Express app on Replit using express-session:
-1. Call `app.set("trust proxy", 1)` before session middleware.
-2. In the login handler, call `req.session.save(cb)` and send the response inside the callback — not after the assignment.
+Cookie-based sessions are NOT reliable in the Replit preview iframe (cross-site iframe context). Use a hybrid approach:
+
+1. `app.set("trust proxy", 1)` — required for the reverse proxy.
+2. `req.session.save(cb)` — save session before responding in login.
+3. Return `sessionToken: req.sessionID` in the login JSON body.
+4. Frontend stores it: `localStorage.setItem("cst_session_token", data.sessionToken)`.
+5. Frontend sends it: `setAuthTokenGetter(() => localStorage.getItem("cst_session_token"))`.
+6. Backend `requireAuth` middleware checks: cookie session → falls back to Bearer token → looks up session in DB by SID.
+
+Cookie settings: `sameSite: "none", secure: true` (Replit is always HTTPS via proxy, `trust proxy: 1` makes it work).
 
 ## Why
-Replit uses a reverse HTTPS proxy. Without `trust proxy`, Express doesn't trust forwarded headers and cookie behavior can break. Without `req.session.save()`, the session may not be flushed to the store (PostgreSQL via connect-pg-simple) before the response is sent, causing the next request to see no session.
+The Replit preview pane embeds the app in a cross-site iframe. `SameSite=Lax` cookies are blocked in this context. `SameSite=None; Secure` should work but is unreliable across different Replit preview modes. The localStorage Bearer token approach bypasses all cookie/SameSite issues entirely and is the most robust solution.
 
 ## How to apply
-Always apply both fixes together when adding session auth to an Express app on Replit. This affects any route that creates a session (login, OAuth callback, etc.).
+Any new Express session auth on Replit: always implement hybrid cookie + localStorage Bearer token. The `requireAuth` middleware pattern in `artifacts/api-server/src/middleware/requireAuth.ts` is the reference implementation.

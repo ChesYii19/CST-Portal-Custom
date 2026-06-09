@@ -2,13 +2,9 @@ import { Router } from "express";
 import { db, themeSettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { UpdateThemeSettingsBody } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
-
-function requireAuth(req: any, res: any, next: any) {
-  if (!(req.session as any).userId) return res.status(401).json({ error: "Não autenticado" });
-  next();
-}
 
 async function ensureSettings() {
   const existing = await db.select().from(themeSettingsTable).limit(1);

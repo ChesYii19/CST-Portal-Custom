@@ -98,6 +98,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             onClick={() => {
               logoutMutation.mutate(undefined, {
                 onSuccess: () => {
+                  localStorage.removeItem("cst_session_token");
                   toast({ description: "Logout realizado com sucesso" });
                   setLocation("/");
                 }

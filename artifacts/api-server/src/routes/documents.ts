@@ -2,13 +2,9 @@ import { Router } from "express";
 import { db, documentsTable } from "@workspace/db";
 import { eq, ilike, or } from "drizzle-orm";
 import { DeleteDocumentParams, GetDocumentsQueryParams } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
-
-function requireAuth(req: any, res: any, next: any) {
-  if (!(req.session as any).userId) return res.status(401).json({ error: "Não autenticado" });
-  next();
-}
 
 router.get("/documents", requireAuth, async (req, res) => {
   const parsed = GetDocumentsQueryParams.safeParse(req.query);

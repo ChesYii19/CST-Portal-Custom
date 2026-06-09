@@ -1,16 +1,12 @@
 import { Router } from "express";
 import { db, notificationsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
-function requireAuth(req: any, res: any, next: any) {
-  if (!(req.session as any).userId) return res.status(401).json({ error: "Não autenticado" });
-  next();
-}
-
 router.get("/notifications", requireAuth, async (req, res) => {
-  const userId = (req.session as any).userId;
+  const userId = (req as any).authUserId;
   const notifs = await db
     .select()
     .from(notificationsTable)
@@ -28,7 +24,7 @@ router.get("/notifications", requireAuth, async (req, res) => {
 });
 
 router.patch("/notifications/read-all", requireAuth, async (req, res) => {
-  const userId = (req.session as any).userId;
+  const userId = (req as any).authUserId;
   await db
     .update(notificationsTable)
     .set({ read: true })

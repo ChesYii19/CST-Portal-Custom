@@ -7,13 +7,9 @@ import {
   UpdateTaskParams,
   DeleteTaskParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
-
-function requireAuth(req: any, res: any, next: any) {
-  if (!(req.session as any).userId) return res.status(401).json({ error: "Não autenticado" });
-  next();
-}
 
 function mapTask(t: any) {
   return {
@@ -30,9 +26,9 @@ function mapTask(t: any) {
 router.get("/tasks", requireAuth, async (req, res) => {
   const tasks = await db.select().from(tasksTable).orderBy(tasksTable.createdAt);
   const grouped = {
-    todo: tasks.filter((t) => t.status === "todo").map(mapTask),
-    doing: tasks.filter((t) => t.status === "doing").map(mapTask),
-    done: tasks.filter((t) => t.status === "done").map(mapTask),
+    todo: tasks.filter((t) => t.status === "todo" || t.status === "pendente").map(mapTask),
+    doing: tasks.filter((t) => t.status === "doing" || t.status === "em_andamento").map(mapTask),
+    done: tasks.filter((t) => t.status === "done" || t.status === "concluido").map(mapTask),
   };
   return res.json(grouped);
 });
@@ -41,7 +37,6 @@ router.post("/tasks", requireAuth, async (req, res) => {
   const parsed = CreateTaskBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Dados inválidos" });
 
-  // Lookup assignee color
   let assigneeColor = "#6B7A85";
   if (parsed.data.assigneeInitials) {
     const users = await db.select().from(usersTable);
@@ -73,7 +68,6 @@ router.patch("/tasks/:id", requireAuth, async (req, res) => {
 
   const updates: any = { ...bodyParsed.data };
 
-  // Update assignee color if initials changed
   if (updates.assigneeInitials) {
     const users = await db.select().from(usersTable);
     const u = users.find((u) => u.initials === updates.assigneeInitials);

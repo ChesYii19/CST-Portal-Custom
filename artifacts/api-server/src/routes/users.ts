@@ -8,11 +8,15 @@ import {
   UpdateUserParams,
   DeleteUserParams,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
-function requireAuth(req: any, res: any, next: any) {
-  if (!(req.session as any).userId) return res.status(401).json({ error: "Não autenticado" });
+async function loadUser(req: any, res: any, next: any) {
+  const userId = (req as any).authUserId;
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) return res.status(401).json({ error: "Usuário não encontrado" });
+  (req as any).currentUser = user;
   next();
 }
 
@@ -20,15 +24,6 @@ function requireAdmin(req: any, res: any, next: any) {
   if (!(req as any).currentUser || (req as any).currentUser.role !== "admin") {
     return res.status(403).json({ error: "Acesso negado" });
   }
-  next();
-}
-
-async function loadUser(req: any, res: any, next: any) {
-  const userId = (req.session as any).userId;
-  if (!userId) return res.status(401).json({ error: "Não autenticado" });
-  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
-  if (!user) return res.status(401).json({ error: "Usuário não encontrado" });
-  (req as any).currentUser = user;
   next();
 }
 

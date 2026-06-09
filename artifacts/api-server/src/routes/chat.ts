@@ -1,14 +1,10 @@
 import { Router } from "express";
 import { db, channelsTable, messagesTable, usersTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { CreateMessageBody, GetMessagesQueryParams } from "@workspace/api-zod";
+import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
-
-function requireAuth(req: any, res: any, next: any) {
-  if (!(req.session as any).userId) return res.status(401).json({ error: "Não autenticado" });
-  next();
-}
 
 const ROLES: Record<string, string> = {
   admin: "Administrador",
@@ -18,7 +14,6 @@ const ROLES: Record<string, string> = {
 
 router.get("/channels", requireAuth, async (req, res) => {
   const channels = await db.select().from(channelsTable).orderBy(channelsTable.id);
-  // Get message counts
   const result = await Promise.all(
     channels.map(async (ch) => {
       const msgs = await db
@@ -62,7 +57,7 @@ router.get("/messages", requireAuth, async (req, res) => {
 });
 
 router.post("/messages", requireAuth, async (req, res) => {
-  const userId = (req.session as any).userId;
+  const userId = (req as any).authUserId;
   const parsed = CreateMessageBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Dados inválidos" });
 
