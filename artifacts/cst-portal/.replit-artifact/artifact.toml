@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "CST Portal Interno"
+version = "1.0.0"
+id = "artifacts/cst-portal"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25625
+
+[services.development]
+run = "pnpm --filter @workspace/cst-portal run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cst-portal", "run", "build" ]
+publicDir = "artifacts/cst-portal/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25625"
+BASE_PATH = "/"

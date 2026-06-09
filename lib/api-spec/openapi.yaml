@@ -1,22 +1,38 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CST Portal Internal API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: channels
+    description: Chat channels
+  - name: messages
+    description: Chat messages
+  - name: documents
+    description: Document bank
+  - name: tasks
+    description: Kanban tasks
+  - name: notifications
+    description: Notifications
+  - name: dashboard
+    description: Dashboard stats
+  - name: settings
+    description: Theme and customization settings
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,380 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "423":
+          description: Account locked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      operationId: getUsers
+      tags: [users]
+      summary: List all users
+      responses:
+        "200":
+          description: Users list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /channels:
+    get:
+      operationId: getChannels
+      tags: [channels]
+      summary: List channels
+      responses:
+        "200":
+          description: Channels list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+
+  /messages:
+    get:
+      operationId: getMessages
+      tags: [messages]
+      summary: Get messages for a channel
+      parameters:
+        - name: channelId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Messages list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: createMessage
+      tags: [messages]
+      summary: Send a message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+
+  /documents:
+    get:
+      operationId: getDocuments
+      tags: [documents]
+      summary: List documents
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Documents list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
+
+  /documents/{id}:
+    delete:
+      operationId: deleteDocument
+      tags: [documents]
+      summary: Delete a document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /tasks:
+    get:
+      operationId: getTasks
+      tags: [tasks]
+      summary: List tasks grouped by status
+      responses:
+        "200":
+          description: Tasks grouped by status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TasksGrouped"
+    post:
+      operationId: createTask
+      tags: [tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+
+  /tasks/{id}:
+    patch:
+      operationId: updateTask
+      tags: [tasks]
+      summary: Update a task (move status, edit)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+    delete:
+      operationId: deleteTask
+      tags: [tasks]
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notifications for current user
+      responses:
+        "200":
+          description: Notifications list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+
+  /notifications/read-all:
+    patch:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /settings/theme:
+    get:
+      operationId: getThemeSettings
+      tags: [settings]
+      summary: Get theme/customization settings
+      responses:
+        "200":
+          description: Theme settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThemeSettings"
+    patch:
+      operationId: updateThemeSettings
+      tags: [settings]
+      summary: Update theme/customization settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThemeSettingsUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThemeSettings"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +424,347 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        attemptsLeft:
+          type: ["integer", "null"]
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    User:
+      type: object
+      required: [id, name, email, role, dept, initials, color, status]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [admin, sector_manager, employee]
+        dept:
+          type: string
+        initials:
+          type: string
+        color:
+          type: string
+        status:
+          type: string
+          enum: [ativo, inativo]
+
+    UserInput:
+      type: object
+      required: [name, email, password, role, dept]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [admin, sector_manager, employee]
+        dept:
+          type: string
+        color:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, sector_manager, employee]
+        dept:
+          type: string
+        status:
+          type: string
+          enum: [ativo, inativo]
+        color:
+          type: string
+
+    Channel:
+      type: object
+      required: [id, name, isPublic]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        isPublic:
+          type: boolean
+        messageCount:
+          type: integer
+
+    Message:
+      type: object
+      required: [id, channelId, userId, userName, userRole, userInitials, userColor, text, createdAt]
+      properties:
+        id:
+          type: integer
+        channelId:
+          type: string
+        userId:
+          type: integer
+        userName:
+          type: string
+        userRole:
+          type: string
+        userInitials:
+          type: string
+        userColor:
+          type: string
+        text:
+          type: string
+        createdAt:
+          type: string
+
+    MessageInput:
+      type: object
+      required: [channelId, text]
+      properties:
+        channelId:
+          type: string
+        text:
+          type: string
+
+    Document:
+      type: object
+      required: [id, name, dept, size, uploadedAt, ext]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        dept:
+          type: string
+        size:
+          type: string
+        uploadedAt:
+          type: string
+        ext:
+          type: string
+
+    Task:
+      type: object
+      required: [id, title, dept, priority, status, assigneeInitials, assigneeColor]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        dept:
+          type: string
+        priority:
+          type: string
+          enum: [alta, media, baixa]
+        status:
+          type: string
+          enum: [todo, doing, done]
+        assigneeInitials:
+          type: string
+        assigneeColor:
+          type: string
+
+    TaskInput:
+      type: object
+      required: [title, dept, priority, status]
+      properties:
+        title:
+          type: string
+        dept:
+          type: string
+        priority:
+          type: string
+          enum: [alta, media, baixa]
+        status:
+          type: string
+          enum: [todo, doing, done]
+        assigneeInitials:
+          type: string
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        dept:
+          type: string
+        priority:
+          type: string
+          enum: [alta, media, baixa]
+        status:
+          type: string
+          enum: [todo, doing, done]
+        assigneeInitials:
+          type: string
+
+    TasksGrouped:
+      type: object
+      required: [todo, doing, done]
+      properties:
+        todo:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        doing:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        done:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+
+    Notification:
+      type: object
+      required: [id, text, time, read]
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        time:
+          type: string
+        read:
+          type: boolean
+
+    DashboardStats:
+      type: object
+      required: [openTasks, totalDocuments, activeMembers, completedTasks, weeklyActivity, tasksByStatus, departmentActivity, recentActivity]
+      properties:
+        openTasks:
+          type: integer
+        totalDocuments:
+          type: integer
+        activeMembers:
+          type: integer
+        completedTasks:
+          type: integer
+        weeklyActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyPoint"
+        tasksByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusCount"
+        departmentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeptActivity"
+        recentActivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityItem"
+
+    WeeklyPoint:
+      type: object
+      required: [day, v]
+      properties:
+        day:
+          type: string
+        v:
+          type: integer
+
+    StatusCount:
+      type: object
+      required: [name, value]
+      properties:
+        name:
+          type: string
+        value:
+          type: integer
+
+    DeptActivity:
+      type: object
+      required: [name, tarefas, docs]
+      properties:
+        name:
+          type: string
+        tarefas:
+          type: integer
+        docs:
+          type: integer
+
+    ActivityItem:
+      type: object
+      required: [text, time, initials, color]
+      properties:
+        text:
+          type: string
+        time:
+          type: string
+        initials:
+          type: string
+        color:
+          type: string
+
+    ThemeSettings:
+      type: object
+      required: [id, darkMode, primaryColor, accentColor, fontFamily, borderRadius, compactMode, orgName, orgSlogan]
+      properties:
+        id:
+          type: integer
+        darkMode:
+          type: boolean
+        primaryColor:
+          type: string
+        accentColor:
+          type: string
+        fontFamily:
+          type: string
+        borderRadius:
+          type: integer
+        compactMode:
+          type: boolean
+        orgName:
+          type: string
+        orgSlogan:
+          type: string
+
+    ThemeSettingsUpdate:
+      type: object
+      properties:
+        darkMode:
+          type: boolean
+        primaryColor:
+          type: string
+        accentColor:
+          type: string
+        fontFamily:
+          type: string
+        borderRadius:
+          type: integer
+        compactMode:
+          type: boolean
+        orgName:
+          type: string
+        orgSlogan:
+          type: string
