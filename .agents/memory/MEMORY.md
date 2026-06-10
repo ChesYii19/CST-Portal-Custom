@@ -1,2 +1,4 @@
 - [Session persistence behind Replit proxy](session-proxy.md) — req.session.save() + trust proxy = 1 are both required for Express sessions to work on Replit.
 - [DB lib rebuild order](db-lib-rebuild.md) — After changing DB schema, run typecheck:libs before api-server typecheck or imports fail with stale declarations.
+- [CST brand guide colors](brand-guide.md) — exact hex values from PDF brand guide; use these everywhere, not guessed values.
+- [Chat fetch auth headers](chat-auth.md) — frontend fetch must use typed Record<string, string> helper for auth headers to avoid TS2769 (spread of conditional object not assignable to HeadersInit).

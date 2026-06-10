@@ -1,6 +1,6 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { db, channelsTable, messagesTable, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { CreateMessageBody, GetMessagesQueryParams } from "@workspace/api-zod";
 import { requireAuth } from "../middleware/requireAuth";
 
@@ -12,28 +12,23 @@ const ROLES: Record<string, string> = {
   employee: "Colaborador",
 };
 
-router.get("/channels", requireAuth, async (req, res) => {
+router.get("/channels", requireAuth, async (req: Request, res: Response): Promise<void> => {
   const channels = await db.select().from(channelsTable).orderBy(channelsTable.id);
   const result = await Promise.all(
     channels.map(async (ch) => {
-      const msgs = await db
-        .select()
-        .from(messagesTable)
-        .where(eq(messagesTable.channelId, ch.id));
-      return {
-        id: ch.id,
-        name: ch.name,
-        isPublic: ch.isPublic,
-        messageCount: msgs.length,
-      };
+      const msgs = await db.select().from(messagesTable).where(eq(messagesTable.channelId, ch.id));
+      return { id: ch.id, name: ch.name, isPublic: ch.isPublic, messageCount: msgs.length };
     })
   );
-  return res.json(result);
+  res.json(result);
 });
 
-router.get("/messages", requireAuth, async (req, res) => {
+router.get("/messages", requireAuth, async (req: Request, res: Response): Promise<void> => {
   const parsed = GetMessagesQueryParams.safeParse(req.query);
-  if (!parsed.success) return res.status(400).json({ error: "channelId é obrigatório" });
+  if (!parsed.success) {
+    res.status(400).json({ error: "channelId é obrigatório" });
+    return;
+  }
 
   const messages = await db
     .select()
@@ -41,7 +36,7 @@ router.get("/messages", requireAuth, async (req, res) => {
     .where(eq(messagesTable.channelId, parsed.data.channelId))
     .orderBy(messagesTable.createdAt);
 
-  return res.json(
+  res.json(
     messages.map((m) => ({
       id: m.id,
       channelId: m.channelId,
@@ -51,23 +46,25 @@ router.get("/messages", requireAuth, async (req, res) => {
       userInitials: m.userInitials,
       userColor: m.userColor,
       text: m.text,
+      edited: m.edited ?? false,
       createdAt: m.createdAt.toISOString(),
     }))
   );
 });
 
-router.post("/messages", requireAuth, async (req, res) => {
+router.post("/messages", requireAuth, async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).authUserId;
   const parsed = CreateMessageBody.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Dados inválidos" });
+  if (!parsed.success) {
+    res.status(400).json({ error: "Dados inválidos" });
+    return;
+  }
 
-  const [user] = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.id, userId))
-    .limit(1);
-
-  if (!user) return res.status(401).json({ error: "Usuário não encontrado" });
+  const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (!user) {
+    res.status(401).json({ error: "Usuário não encontrado" });
+    return;
+  }
 
   const [msg] = await db
     .insert(messagesTable)
@@ -82,7 +79,7 @@ router.post("/messages", requireAuth, async (req, res) => {
     })
     .returning();
 
-  return res.status(201).json({
+  res.status(201).json({
     id: msg.id,
     channelId: msg.channelId,
     userId: msg.userId,
@@ -91,8 +88,62 @@ router.post("/messages", requireAuth, async (req, res) => {
     userInitials: msg.userInitials,
     userColor: msg.userColor,
     text: msg.text,
+    edited: false,
     createdAt: msg.createdAt.toISOString(),
   });
+});
+
+router.put("/messages/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).authUserId;
+  const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+
+  const { text } = req.body;
+  if (!text?.trim()) { res.status(400).json({ error: "Texto não pode ser vazio" }); return; }
+
+  const [existing] = await db.select().from(messagesTable).where(eq(messagesTable.id, id)).limit(1);
+  if (!existing) { res.status(404).json({ error: "Mensagem não encontrada" }); return; }
+
+  const [me] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (existing.userId !== userId && me?.role !== 'admin') {
+    res.status(403).json({ error: "Sem permissão" }); return;
+  }
+
+  const [updated] = await db
+    .update(messagesTable)
+    .set({ text: text.trim(), edited: true })
+    .where(eq(messagesTable.id, id))
+    .returning();
+
+  res.json({
+    id: updated.id,
+    channelId: updated.channelId,
+    userId: updated.userId,
+    userName: updated.userName,
+    userRole: updated.userRole,
+    userInitials: updated.userInitials,
+    userColor: updated.userColor,
+    text: updated.text,
+    edited: updated.edited ?? true,
+    createdAt: updated.createdAt.toISOString(),
+  });
+});
+
+router.delete("/messages/:id", requireAuth, async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).authUserId;
+  const id = parseInt(String(req.params.id));
+  if (isNaN(id)) { res.status(400).json({ error: "ID inválido" }); return; }
+
+  const [existing] = await db.select().from(messagesTable).where(eq(messagesTable.id, id)).limit(1);
+  if (!existing) { res.status(404).json({ error: "Mensagem não encontrada" }); return; }
+
+  const [me] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  if (existing.userId !== userId && me?.role !== 'admin') {
+    res.status(403).json({ error: "Sem permissão" }); return;
+  }
+
+  await db.delete(messagesTable).where(eq(messagesTable.id, id));
+  res.json({ success: true });
 });
 
 export default router;
