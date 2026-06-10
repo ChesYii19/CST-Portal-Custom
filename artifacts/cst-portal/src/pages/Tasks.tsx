@@ -61,7 +61,7 @@ export default function Tasks() {
   };
 
   const handleEditSave = (id: number) => {
-    updateTask.mutate({ id, data: editForm }, {
+    updateTask.mutate({ id, data: { ...editForm, priority: editForm.priority as 'alta' | 'media' | 'baixa' } }, {
       onSuccess: () => {
         toast({ description: "Tarefa atualizada" });
         queryClient.invalidateQueries({ queryKey: getGetTasksQueryKey() });
@@ -73,7 +73,7 @@ export default function Tasks() {
   const handleCreate = () => {
     if (!createForm.title.trim()) return;
     setLoading(true);
-    createTask.mutate({ data: createForm }, {
+    createTask.mutate({ data: { ...createForm, priority: createForm.priority as 'alta' | 'media' | 'baixa', status: createForm.status as 'todo' | 'doing' | 'done' } }, {
       onSuccess: () => {
         toast({ description: "Tarefa criada" });
         queryClient.invalidateQueries({ queryKey: getGetTasksQueryKey() });

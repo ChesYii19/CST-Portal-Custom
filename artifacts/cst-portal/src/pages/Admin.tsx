@@ -80,7 +80,7 @@ export default function Admin() {
         }
       });
     } else {
-      createUser.mutate({ data: { name: form.name, email: form.email, password: form.password, role: form.role, dept: form.dept, color: form.color } }, {
+      createUser.mutate({ data: { name: form.name, email: form.email, password: form.password, role: form.role as 'admin' | 'sector_manager' | 'employee', dept: form.dept, color: form.color } }, {
         onSuccess: () => {
           toast({ description: "Usuário criado" });
           queryClient.invalidateQueries({ queryKey: getGetUsersQueryKey() });
