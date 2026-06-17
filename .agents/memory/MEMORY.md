@@ -2,3 +2,4 @@
 - [DB lib rebuild order](db-lib-rebuild.md) — After changing DB schema, run typecheck:libs before api-server typecheck or imports fail with stale declarations.
 - [CST brand guide colors](brand-guide.md) — exact hex values from PDF brand guide; use these everywhere, not guessed values.
 - [Chat fetch auth headers](chat-auth.md) — frontend fetch must use typed Record<string, string> helper for auth headers to avoid TS2769 (spread of conditional object not assignable to HeadersInit).
+- [Security decisions](security-decisions.md) — rate limiters in lib/ to avoid circular deps; authLimiter pattern; session cookie rename; user enumeration fix via DUMMY_HASH; PATCH /auth/me for self-update.

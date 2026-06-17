@@ -40,7 +40,7 @@ export default function Login() {
     if (!email || !password) return;
     loginMutation.mutate({ data: { email, password } }, {
       onSuccess: (data: any) => {
-        if (data.sessionToken) localStorage.setItem("cst_session_token", data.sessionToken);
+        // Session lives in httpOnly cookie only — never stored in localStorage (XSS risk)
         toast({ description: `Bem-vinda, ${data.name}!` });
         setLocation("/dashboard");
       },

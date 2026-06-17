@@ -12,6 +12,17 @@ import { requireAuth } from "../middleware/requireAuth";
 
 const router = Router();
 
+/* ─── Helpers ─────────────────────────────────────────────── */
+
+// Reusable admin gate — relies on role cached by requireAuth
+function requireAdmin(req: any, res: any, next: any) {
+  if ((req as any).authUserRole !== "admin") {
+    return res.status(403).json({ error: "Acesso negado — requer perfil de administrador" });
+  }
+  next();
+}
+
+// Load full user record into req.currentUser (needed by admin handlers)
 async function loadUser(req: any, res: any, next: any) {
   const userId = (req as any).authUserId;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
@@ -20,60 +31,108 @@ async function loadUser(req: any, res: any, next: any) {
   next();
 }
 
-function requireAdmin(req: any, res: any, next: any) {
-  if (!(req as any).currentUser || (req as any).currentUser.role !== "admin") {
-    return res.status(403).json({ error: "Acesso negado" });
-  }
-  next();
-}
-
 function mapUser(u: any) {
   return {
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    role: u.role,
-    dept: u.dept,
+    id:       u.id,
+    name:     u.name,
+    email:    u.email,
+    role:     u.role,
+    dept:     u.dept,
     initials: u.initials,
-    color: u.color,
-    status: u.status,
+    color:    u.color,
+    status:   u.status,
   };
 }
 
-router.get("/users", requireAuth, async (req, res) => {
+/**
+ * Password complexity rules (OWASP baseline):
+ *   - Minimum 8 characters
+ *   - At least 1 uppercase letter
+ *   - At least 1 lowercase letter
+ *   - At least 1 digit
+ * Returns an error message string, or null if valid.
+ */
+function validatePasswordComplexity(password: string): string | null {
+  if (password.length < 8)       return "Senha deve ter pelo menos 8 caracteres";
+  if (!/[A-Z]/.test(password))   return "Senha deve conter pelo menos uma letra maiúscula";
+  if (!/[a-z]/.test(password))   return "Senha deve conter pelo menos uma letra minúscula";
+  if (!/[0-9]/.test(password))   return "Senha deve conter pelo menos um número";
+  if (password.length > 128)     return "Senha deve ter no máximo 128 caracteres";
+  return null;
+}
+
+/* ─── GET /users ──────────────────────────────────────────── */
+// RESTRICTED to admin only — the user list contains emails, roles, and department data.
+// Collaborators and managers do NOT need this information.
+router.get("/users", requireAuth, requireAdmin, async (req, res) => {
   const users = await db.select().from(usersTable).orderBy(usersTable.id);
   return res.json(users.map(mapUser));
 });
 
-router.post("/users", requireAuth, loadUser, requireAdmin, async (req, res) => {
+/* ─── POST /users ─────────────────────────────────────────── */
+router.post("/users", requireAuth, requireAdmin, async (req, res) => {
   const parsed = CreateUserBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Dados inválidos" });
 
   const { name, email, password, role, dept, color } = parsed.data;
-  const passwordHash = await bcrypt.hash(password, 10);
-  const initials = name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
+
+  // Enforce password complexity on creation
+  const pwError = validatePasswordComplexity(password);
+  if (pwError) return res.status(400).json({ error: pwError });
+
+  // Check for duplicate email
+  const [existing] = await db.select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.email, email.toLowerCase()))
+    .limit(1);
+  if (existing) return res.status(409).json({ error: "Este e-mail já está cadastrado" });
+
+  const passwordHash = await bcrypt.hash(password, 12); // 12 rounds (OWASP recommended)
+  const initials = name.trim().split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
 
   const [user] = await db.insert(usersTable).values({
-    name, email, passwordHash, role, dept,
+    name:         name.trim(),
+    email:        email.toLowerCase(),
+    passwordHash,
+    role,
+    dept,
     initials,
-    color: color || "#2E5A6A",
-    status: "ativo",
+    color:        color || "#2E5665",
+    status:       "ativo",
     loginAttempts: 0,
   }).returning();
 
   return res.status(201).json(mapUser(user));
 });
 
-router.patch("/users/:id", requireAuth, loadUser, requireAdmin, async (req, res) => {
+/* ─── PATCH /users/:id ─────────────────────────────────────── */
+// Admin-only: can change role, status, dept, name, and optionally reset password.
+router.patch("/users/:id", requireAuth, requireAdmin, async (req, res) => {
   const paramsParsed = UpdateUserParams.safeParse(req.params);
   if (!paramsParsed.success) return res.status(400).json({ error: "ID inválido" });
 
   const bodyParsed = UpdateUserBody.safeParse(req.body);
   if (!bodyParsed.success) return res.status(400).json({ error: "Dados inválidos" });
 
+  const updates: any = { ...bodyParsed.data };
+
+  // If password is being reset, enforce complexity and hash it
+  if (updates.password) {
+    const pwError = validatePasswordComplexity(updates.password);
+    if (pwError) return res.status(400).json({ error: pwError });
+    updates.passwordHash = await bcrypt.hash(updates.password, 12);
+    delete updates.password;
+  }
+
+  // Recompute initials if name changed
+  if (updates.name) {
+    updates.name    = updates.name.trim();
+    updates.initials = updates.name.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
+  }
+
   const [updated] = await db
     .update(usersTable)
-    .set(bodyParsed.data)
+    .set(updates)
     .where(eq(usersTable.id, paramsParsed.data.id))
     .returning();
 
@@ -81,9 +140,15 @@ router.patch("/users/:id", requireAuth, loadUser, requireAdmin, async (req, res)
   return res.json(mapUser(updated));
 });
 
-router.delete("/users/:id", requireAuth, loadUser, requireAdmin, async (req, res) => {
+/* ─── DELETE /users/:id ────────────────────────────────────── */
+router.delete("/users/:id", requireAuth, requireAdmin, async (req, res) => {
   const paramsParsed = DeleteUserParams.safeParse(req.params);
   if (!paramsParsed.success) return res.status(400).json({ error: "ID inválido" });
+
+  // Prevent self-deletion — an admin deleting themselves would leave no admin
+  if (paramsParsed.data.id === (req as any).authUserId) {
+    return res.status(403).json({ error: "Não é possível remover sua própria conta" });
+  }
 
   await db.delete(usersTable).where(eq(usersTable.id, paramsParsed.data.id));
   return res.json({ success: true });

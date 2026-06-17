@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { db, sessionsTable } from "@workspace/db";
+import { db, sessionsTable, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 async function getUserIdFromBearer(authHeader: string | undefined): Promise<number | null> {
@@ -35,6 +35,22 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     return;
   }
 
-  (req as any).authUserId = userId;
+  // Verify the user still exists AND is active.
+  // Prevents: deactivated/deleted users from using stale sessions.
+  const [user] = await db
+    .select({ id: usersTable.id, status: usersTable.status, role: usersTable.role })
+    .from(usersTable)
+    .where(eq(usersTable.id, userId))
+    .limit(1);
+
+  if (!user || user.status === "inativo") {
+    // Destroy the session so subsequent requests are also blocked
+    req.session.destroy(() => {});
+    res.status(401).json({ error: "Conta inativa ou não encontrada" });
+    return;
+  }
+
+  (req as any).authUserId   = userId;
+  (req as any).authUserRole = user.role; // Pre-loaded role for authorization checks downstream
   next();
 }

@@ -1,4 +1,4 @@
-import { useGetMe, useUpdateUser, getGetMeQueryKey } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +26,6 @@ const COLOR_LABELS: Record<string, string> = {
 
 export default function Profile() {
   const { data: me, isLoading } = useGetMe();
-  const updateMe = useUpdateUser();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -44,21 +43,29 @@ export default function Profile() {
   const handleSave = () => {
     if (!me || !isDirty) return;
     setSaving(true);
-    const updates: any = {};
+    const updates: Record<string, string> = {};
     if (name !== me.name) updates.name = name;
     if (dept !== me.dept) updates.dept = dept;
     if (color !== me.color) updates.color = color;
-    updateMe.mutate({ id: me.id, data: updates }, {
-      onSuccess: () => {
+    // Uses PATCH /auth/me — the self-update endpoint for non-sensitive profile fields.
+    // Does NOT use PATCH /users/:id which is admin-only and can change role/status.
+    fetch('/api/auth/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(updates),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
         toast({ description: "Perfil atualizado com sucesso" });
         queryClient.invalidateQueries({ queryKey: getGetMeQueryKey() });
         setSaving(false);
-      },
-      onError: () => {
-        toast({ variant: "destructive", description: "Erro ao atualizar perfil" });
+      })
+      .catch((err: Error) => {
+        toast({ variant: "destructive", description: err.message || "Erro ao atualizar perfil" });
         setSaving(false);
-      }
-    });
+      });
   };
 
   if (isLoading || !me) return (

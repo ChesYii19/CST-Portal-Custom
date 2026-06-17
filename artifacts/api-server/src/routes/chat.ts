@@ -59,6 +59,15 @@ router.post("/messages", requireAuth, async (req: Request, res: Response): Promi
     res.status(400).json({ error: "Dados inválidos" });
     return;
   }
+  // Enforce message length limits
+  if (!parsed.data.text.trim()) {
+    res.status(400).json({ error: "Mensagem não pode ser vazia" });
+    return;
+  }
+  if (parsed.data.text.length > 2000) {
+    res.status(400).json({ error: "Mensagem muito longa (máx. 2000 caracteres)" });
+    return;
+  }
 
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
   if (!user) {

@@ -24,10 +24,6 @@ const EXT_CONFIG: Record<string, ExtConf> = {
 const getExtConf = (ext: string): ExtConf =>
   EXT_CONFIG[ext?.toLowerCase()] || { icon: File, bg: 'var(--color-muted)', text: 'var(--color-muted-foreground)' };
 
-const getAuthHeaders = (): Record<string, string> => {
-  const token = localStorage.getItem("cst_session_token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
 
 export default function Documents() {
   const [search,      setSearch]     = useState("");
@@ -58,7 +54,7 @@ export default function Documents() {
     setLoading(true);
     fetch('/api/documents', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(form),
     })
