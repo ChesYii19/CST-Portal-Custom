@@ -73,12 +73,12 @@ export default function Login() {
         <div className="flex flex-col justify-center flex-1 px-14 py-20 relative z-10">
           {/* Logo */}
           <div className="mb-12">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl text-white mb-4 shadow-lg"
-              style={{ background: `linear-gradient(135deg, ${CST.rosa}, ${CST.agua})` }}>
-              CST
-            </div>
-            <div className="text-white/50 text-xs font-bold tracking-widest uppercase mb-1">Portal Interno</div>
-            <h1 className="text-white text-3xl font-black leading-tight m-0">Casa Santa<br />Teresinha</h1>
+            <img
+              src="/logo-negativo.png"
+              alt="Casa Santa Teresinha"
+              className="h-16 w-auto object-contain mb-4"
+            />
+            <div className="text-white/50 text-xs font-bold tracking-widest uppercase">Portal Interno</div>
           </div>
 
           {/* Missão */}
@@ -130,12 +130,11 @@ export default function Login() {
           <div className="w-full max-w-[380px]">
             {/* Logo mobile */}
             <div className="lg:hidden flex items-center gap-3 mb-8">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white"
-                style={{ background: `linear-gradient(135deg, ${CST.rosa}, ${CST.agua})` }}>CST</div>
-              <div>
-                <div className="font-black text-sm text-foreground">Casa Santa Teresinha</div>
-                <div className="text-xs text-muted-foreground">Portal Interno</div>
-              </div>
+              <img
+                src="/logo-primario.png"
+                alt="Casa Santa Teresinha"
+                className="h-10 w-auto object-contain"
+              />
             </div>
 
             <div className="mb-8">

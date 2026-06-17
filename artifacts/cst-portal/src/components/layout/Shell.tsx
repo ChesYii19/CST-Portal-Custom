@@ -57,14 +57,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
       {/* Sidebar — Azul Guardiã (30% suporte, conforme brand guide) */}
       <div className="w-[220px] text-white flex flex-col min-h-screen relative flex-shrink-0 z-10" style={{ backgroundColor: CST.azul }}>
         {/* Logo */}
-        <div className="p-5 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm text-white shrink-0" style={{ background: `linear-gradient(135deg, ${CST.rosa}, ${CST.agua})` }}>CST</div>
-            <div>
-              <div className="font-extrabold text-[13px] leading-[1.2]">Casa Santa</div>
-              <div className="text-[11px]" style={{ color: CST.agua }}>Teresinha</div>
-            </div>
-          </div>
+        <div className="px-5 py-4 border-b border-white/10">
+          <img
+            src="/logo-negativo.png"
+            alt="Casa Santa Teresinha"
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
         {/* Barra de cores brand guide */}

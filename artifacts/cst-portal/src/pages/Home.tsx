@@ -42,10 +42,11 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground font-sans transition-all duration-200">
       {/* Header — Azul Guardiã */}
       <div style={{ backgroundColor: CST.azul }} className="px-10 py-3.5 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm text-white" style={{ background: `linear-gradient(135deg, ${CST.rosa}, ${CST.agua})` }}>CST</div>
-          <span className="text-white font-extrabold text-[15px] tracking-wide">CASA SANTA TERESINHA</span>
-        </div>
+        <img
+          src="/logo-negativo.png"
+          alt="Casa Santa Teresinha"
+          className="h-9 w-auto object-contain"
+        />
         <div className="flex gap-3 items-center">
           <button onClick={toggleDark} className="bg-white/15 border-none rounded-lg px-3.5 py-2 cursor-pointer text-white">
             {dark ? <Sun size={20} /> : <Moon size={20} />}
@@ -63,7 +64,11 @@ export default function Home() {
         <div className="absolute -bottom-10 left-16 w-36 h-36 rounded-full opacity-20" style={{ backgroundColor: CST.rosa }} />
         <div className="absolute top-10 -left-5 w-24 h-24 rounded-full opacity-15" style={{ backgroundColor: CST.amarelo }} />
 
-        <div className="w-20 h-20 rounded-full flex items-center justify-center font-black text-2xl text-white mx-auto mb-7" style={{ background: `linear-gradient(135deg, ${CST.rosa}, ${CST.agua})` }}>CST</div>
+        <img
+          src="/logo-negativo.png"
+          alt="Casa Santa Teresinha"
+          className="h-20 w-auto object-contain mx-auto mb-7"
+        />
         <h1 className="text-white text-4xl font-black m-0 mb-4 tracking-widest">CASA SANTA TERESINHA</h1>
         <p className="text-xl m-0 mb-7 tracking-[0.25em] font-bold flex items-center justify-center gap-3">
           <span style={{ color: CST.amarelo }}>ACOLHER</span>
