@@ -22,10 +22,11 @@ export default function NotFound() {
           404
         </div>
 
-        <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg text-white mx-auto mb-6 -mt-4 shadow-lg"
-          style={{ background: `linear-gradient(135deg, ${CST.rosa}, ${CST.agua})` }}>
-          CST
-        </div>
+        <img
+          src="/logo-positivo.png"
+          alt="Casa Santa Teresinha"
+          className="h-12 w-auto object-contain mx-auto mb-6 -mt-4 opacity-80"
+        />
 
         <h1 className="text-2xl font-black text-foreground mb-3">Página não encontrada</h1>
         <p className="text-muted-foreground text-sm leading-relaxed mb-8">
@@ -46,8 +47,12 @@ export default function NotFound() {
         </div>
       </div>
 
-      <div className="absolute bottom-6 text-xs text-muted-foreground font-medium">
-        Portal Interno — Casa Santa Teresinha
+      <div className="absolute bottom-6">
+        <img
+          src="/logo-primario.png"
+          alt="Casa Santa Teresinha"
+          className="h-6 w-auto object-contain opacity-60"
+        />
       </div>
     </div>
   );

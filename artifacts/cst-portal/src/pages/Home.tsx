@@ -123,9 +123,14 @@ export default function Home() {
       {/* Footer */}
       <div className="py-8 text-center border-t border-border">
         {/* Barra de cores */}
-        <div className="flex h-0.5 max-w-sm mx-auto mb-4">
+        <div className="flex h-0.5 max-w-sm mx-auto mb-5">
           {PALETTE.map((c, i) => <div key={i} className="flex-1" style={{ background: c }} />)}
         </div>
+        <img
+          src="/logo-primario.png"
+          alt="Casa Santa Teresinha"
+          className="h-8 w-auto object-contain mx-auto mb-3 opacity-90"
+        />
         <p className="text-muted-foreground text-xs font-medium">
           © {new Date().getFullYear()} Casa Santa Teresinha · Portal Interno
         </p>
