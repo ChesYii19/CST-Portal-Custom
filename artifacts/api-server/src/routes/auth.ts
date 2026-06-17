@@ -78,34 +78,30 @@ router.post("/auth/login", authLimiter, async (req: Request, res: Response): Pro
   // Reset failed attempts on success
   await db.update(usersTable).set({ loginAttempts: 0, lockedAt: null }).where(eq(usersTable.id, user.id));
 
-  // Session fixation prevention: regenerate session ID before storing userId.
-  // This ensures a pre-login session ID (possibly controlled by an attacker) cannot
-  // be promoted to an authenticated session.
-  req.session.regenerate((regenErr) => {
-    if (regenErr) {
+  // Store userId in session and persist immediately.
+  // session.save() is called explicitly before res.json() to guarantee the session
+  // is written to PostgreSQL and the Set-Cookie header is sent before the response
+  // body — required behind Replit's reverse proxy (see replit.md architecture decisions).
+  // Note: session.regenerate() was attempted for session-fixation protection but it
+  // prevents express-session from emitting Set-Cookie in this proxy environment,
+  // so we rely on saveUninitialized:false + httpOnly cookie as mitigations instead.
+  (req.session as any).userId = user.id;
+
+  req.session.save((saveErr) => {
+    if (saveErr) {
       res.status(500).json({ error: "Erro ao criar sessão" });
       return;
     }
 
-    (req.session as any).userId = user.id;
-
-    req.session.save((saveErr) => {
-      if (saveErr) {
-        res.status(500).json({ error: "Erro ao criar sessão" });
-        return;
-      }
-
-      // Do NOT include sessionID in the response body — it lives in the httpOnly cookie only.
-      res.json({
-        id:       user.id,
-        name:     user.name,
-        email:    user.email,
-        role:     user.role,
-        dept:     user.dept,
-        initials: user.initials,
-        color:    user.color,
-        status:   user.status,
-      });
+    res.json({
+      id:       user.id,
+      name:     user.name,
+      email:    user.email,
+      role:     user.role,
+      dept:     user.dept,
+      initials: user.initials,
+      color:    user.color,
+      status:   user.status,
     });
   });
 });

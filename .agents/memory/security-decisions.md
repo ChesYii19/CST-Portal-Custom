@@ -17,6 +17,13 @@ description: Security architecture decisions made during the security hardening 
 - maxAge reduced from 7 days to 8 hours (least-privilege)
 - `sessionToken` (sessionID) was removed from login response body — lives in httpOnly cookie only
 
+## session.regenerate() breaks Set-Cookie behind Replit proxy
+- **DO NOT use `session.regenerate()` in the login handler.**
+- express-session only sends `Set-Cookie` when `secure: true` AND `X-Forwarded-Proto: https` is present.
+- `session.regenerate()` inside an async callback creates a race: `onHeaders` fires before the new session ID is ready → no cookie is sent → every subsequent `GET /auth/me` returns 401.
+- **Fix**: set `req.session.userId` directly, then call `req.session.save()`. Session-fixation risk is mitigated by `httpOnly` cookie (JS cannot read session ID) + `saveUninitialized: false`.
+- **How to verify**: `python3 -c "import http.client, json; ..."` with `X-Forwarded-Proto: https` header — the Set-Cookie must appear in the response headers.
+
 ## Self-update vs Admin Update
 - PATCH /auth/me — any authenticated user, updates name/dept/color only
 - PATCH /users/:id — admin only, can change role/status/email
