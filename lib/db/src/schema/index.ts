@@ -6,3 +6,4 @@ export * from "./tasks";
 export * from "./notifications";
 export * from "./theme_settings";
 export * from "./sessions";
+export * from "./announcements";

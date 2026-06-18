@@ -4,7 +4,7 @@ import {
   getGetUsersQueryKey, useGetMe,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Shield, Trash2, Edit, Settings, X, Save, RefreshCw, Plus, Search, CheckCircle } from "lucide-react";
+import { Shield, Trash2, Edit, Settings, X, Save, RefreshCw, Plus, Search, CheckCircle, KeyRound, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CST, PALETTE } from "@/lib/brand";
 
@@ -29,6 +29,8 @@ export default function Admin() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser]   = useState<any>(null);
+  const [resetTokenModal, setResetTokenModal] = useState<{ userId: number; token: string; expiresAt: string } | null>(null);
+  const [generatingToken, setGeneratingToken] = useState<number | null>(null);
   const [form, setForm] = useState<{
     name: string; email: string; password: string; role: string;
     dept: string; color: string; status: string;
@@ -79,6 +81,19 @@ export default function Admin() {
     }
   };
 
+  const handleGenerateResetToken = (userId: number) => {
+    if (!confirm('Gerar um token de redefinição de senha para este usuário? O token expira em 24 horas.')) return;
+    setGeneratingToken(userId);
+    fetch(`/api/users/${userId}/reset-token`, { method: 'POST', credentials: 'include' })
+      .then(r => r.json())
+      .then((data: any) => {
+        setGeneratingToken(null);
+        if (data.error) { toast({ variant: "destructive", description: data.error }); return; }
+        setResetTokenModal({ userId, token: data.token, expiresAt: data.expiresAt });
+      })
+      .catch(() => { setGeneratingToken(null); toast({ variant: "destructive", description: "Erro ao gerar token" }); });
+  };
+
   const handleDelete = (id: number) => {
     if (!confirm('Remover este usuário?')) return;
     deleteUser.mutate({ id }, {
@@ -98,6 +113,7 @@ export default function Admin() {
   };
 
   return (
+    <>
     <div className="max-w-6xl mx-auto space-y-6 pb-10">
       <div className="flex justify-between items-start">
         <div>
@@ -209,14 +225,24 @@ export default function Admin() {
                         <td className="p-3 text-right">
                           <div className="flex justify-end gap-1">
                             <button onClick={() => openEdit(u)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer transition-colors">
+                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer transition-colors"
+                              title="Editar usuário">
                               <Edit size={15} />
                             </button>
                             {u.id !== me?.id && (
-                              <button onClick={() => handleDelete(u.id)}
-                                className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer transition-colors">
-                                <Trash2 size={15} />
-                              </button>
+                              <>
+                                <button onClick={() => handleGenerateResetToken(u.id)}
+                                  disabled={generatingToken === u.id}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer transition-colors disabled:opacity-40"
+                                  title="Gerar token de reset de senha">
+                                  <KeyRound size={15} />
+                                </button>
+                                <button onClick={() => handleDelete(u.id)}
+                                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer transition-colors"
+                                  title="Remover usuário">
+                                  <Trash2 size={15} />
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>
@@ -366,5 +392,59 @@ export default function Admin() {
         </div>
       )}
     </div>
+
+    {/* Reset Token Modal */}
+    {resetTokenModal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div className="bg-card rounded-2xl border border-border shadow-2xl max-w-md w-full p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#FEF3C7' }}>
+                <KeyRound size={18} style={{ color: '#D97706' }} />
+              </div>
+              <div>
+                <h3 className="font-black text-lg text-foreground m-0">Token de Reset</h3>
+                <p className="text-xs text-muted-foreground">Compartilhe com o usuário</p>
+              </div>
+            </div>
+            <button onClick={() => setResetTokenModal(null)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted cursor-pointer border-none bg-transparent text-muted-foreground">
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
+            <p className="text-xs text-amber-700 dark:text-amber-400 font-semibold">
+              ⚠️ Este token expira em 24 horas. Compartilhe-o com o usuário por um canal seguro (ex: WhatsApp, e-mail interno).
+            </p>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-muted-foreground block mb-1.5 uppercase tracking-wide">Token gerado</label>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 bg-muted p-3 rounded-xl text-xs font-mono break-all text-foreground border border-border">{resetTokenModal.token}</code>
+              <button
+                onClick={() => { navigator.clipboard.writeText(resetTokenModal.token); toast({ description: "Token copiado!" }); }}
+                className="w-10 h-10 rounded-xl border border-border bg-background flex items-center justify-center hover:bg-muted cursor-pointer transition-colors shrink-0 text-muted-foreground hover:text-foreground">
+                <Copy size={15} />
+              </button>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            O usuário deve acessar a tela de login e clicar em <strong>"Esqueceu sua senha? Usar token de redefinição"</strong> para usar este token.
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Expira em: <strong>{new Date(resetTokenModal.expiresAt).toLocaleString('pt-BR')}</strong>
+          </div>
+
+          <button onClick={() => setResetTokenModal(null)}
+            className="w-full py-2.5 rounded-xl text-sm font-bold text-white border-none cursor-pointer hover:opacity-90 transition-all"
+            style={{ backgroundColor: CST.azul }}>
+            Fechar
+          </button>
+        </div>
+      </div>
+    )}
+  </>
   );
 }

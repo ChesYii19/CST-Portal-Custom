@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useGetMe, useLogout } from "@workspace/api-client-react";
-import { LayoutDashboard, MessageSquare, FileText, CheckSquare, Settings, LogOut, Bell, Moon, Sun, User as UserIcon } from "lucide-react";
+import { LayoutDashboard, MessageSquare, FileText, CheckSquare, Settings, LogOut, Bell, Moon, Sun, Megaphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,8 +47,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const nav = [
     { id: 'dashboard', label: 'Dashboard',   icon: LayoutDashboard, path: '/dashboard', accent: CST.agua },
     { id: 'chat',      label: 'Chat',         icon: MessageSquare,   path: '/chat',      accent: CST.rosa },
-    { id: 'documents', label: 'Documentos',   icon: FileText,        path: '/documents', accent: CST.champanhe },
-    { id: 'tasks',     label: 'Tarefas',      icon: CheckSquare,     path: '/tasks',     accent: CST.mata },
+    { id: 'documents',      label: 'Documentos', icon: FileText,   path: '/documents',      accent: CST.champanhe },
+    { id: 'tasks',          label: 'Tarefas',    icon: CheckSquare, path: '/tasks',         accent: CST.mata },
+    { id: 'announcements',  label: 'Avisos',     icon: Megaphone,   path: '/announcements', accent: CST.rosa },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Settings, path: '/admin', accent: CST.amarelo }] : []),
   ];
 

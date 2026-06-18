@@ -27,6 +27,8 @@ tags:
     description: Dashboard stats
   - name: settings
     description: Theme and customization settings
+  - name: announcements
+    description: Announcements and events
 paths:
   /healthz:
     get:
@@ -85,6 +87,114 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
+  /auth/change-password:
+    post:
+      operationId: changePassword
+      tags: [auth]
+      summary: Change temporary/own password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordInput"
+      responses:
+        "200":
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/2fa/setup:
+    post:
+      operationId: setup2fa
+      tags: [auth]
+      summary: Generate 2FA QR code and secret
+      responses:
+        "200":
+          description: QR code and secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TwoFactorSetupResponse"
+
+  /auth/2fa/enable:
+    post:
+      operationId: enable2fa
+      tags: [auth]
+      summary: Enable 2FA after verifying TOTP code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorCodeInput"
+      responses:
+        "200":
+          description: 2FA enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/2fa/verify:
+    post:
+      operationId: verify2fa
+      tags: [auth]
+      summary: Verify TOTP code during login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorCodeInput"
+      responses:
+        "200":
+          description: 2FA verified, session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /auth/2fa/disable:
+    post:
+      operationId: disable2fa
+      tags: [auth]
+      summary: Disable 2FA
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TwoFactorCodeInput"
+      responses:
+        "200":
+          description: 2FA disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password using a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordInput"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /auth/me:
     get:
       operationId: getMe
@@ -135,6 +245,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+
+  /users/{id}/reset-token:
+    post:
+      operationId: generateResetToken
+      tags: [users]
+      summary: Generate a password-reset token for a user (admin only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reset token generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResetTokenResponse"
 
   /users/{id}:
     patch:
@@ -413,6 +542,95 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ThemeSettings"
+
+  /announcements:
+    get:
+      operationId: getAnnouncements
+      tags: [announcements]
+      summary: List active announcements
+      responses:
+        "200":
+          description: Announcements list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+    post:
+      operationId: createAnnouncement
+      tags: [announcements]
+      summary: Create announcement (admin/manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+
+  /announcements/all:
+    get:
+      operationId: getAllAnnouncements
+      tags: [announcements]
+      summary: List all announcements including inactive (admin/manager)
+      responses:
+        "200":
+          description: All announcements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+
+  /announcements/{id}:
+    patch:
+      operationId: updateAnnouncement
+      tags: [announcements]
+      summary: Update announcement (admin/manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+    delete:
+      operationId: deleteAnnouncement
+      tags: [announcements]
+      summary: Delete announcement (admin/manager)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
 
 components:
   schemas:
@@ -748,6 +966,110 @@ components:
           type: string
         orgSlogan:
           type: string
+
+    ChangePasswordInput:
+      type: object
+      required: [currentPassword, newPassword]
+      properties:
+        currentPassword:
+          type: string
+        newPassword:
+          type: string
+
+    TwoFactorSetupResponse:
+      type: object
+      required: [secret, qrCodeUrl]
+      properties:
+        secret:
+          type: string
+        qrCodeUrl:
+          type: string
+
+    TwoFactorCodeInput:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+
+    ResetPasswordInput:
+      type: object
+      required: [email, token, newPassword]
+      properties:
+        email:
+          type: string
+        token:
+          type: string
+        newPassword:
+          type: string
+
+    ResetTokenResponse:
+      type: object
+      required: [token, expiresAt]
+      properties:
+        token:
+          type: string
+        expiresAt:
+          type: string
+
+    Announcement:
+      type: object
+      required: [id, title, content, type, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [info, event, alert]
+        eventDate:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdBy:
+          type: ["integer", "null"]
+        createdByName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        expiresAt:
+          type: ["string", "null"]
+
+    AnnouncementInput:
+      type: object
+      required: [title, content, type]
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [info, event, alert]
+        eventDate:
+          type: ["string", "null"]
+        expiresAt:
+          type: ["string", "null"]
+
+    AnnouncementUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+          enum: [info, event, alert]
+        eventDate:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        expiresAt:
+          type: ["string", "null"]
 
     ThemeSettingsUpdate:
       type: object

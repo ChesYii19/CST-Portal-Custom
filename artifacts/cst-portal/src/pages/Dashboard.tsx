@@ -1,4 +1,5 @@
 import { useGetDashboardStats } from "@workspace/api-client-react";
+import { AnnouncementsPopup } from "@/components/AnnouncementsPopup";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { LayoutDashboard, FileText, Users, CheckSquare } from "lucide-react";
 
@@ -111,6 +112,8 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      {/* Announcements popup — shown at bottom-right when active announcements exist */}
+      <AnnouncementsPopup />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import {
@@ -138,6 +139,33 @@ router.patch("/users/:id", requireAuth, requireAdmin, async (req, res) => {
 
   if (!updated) return res.status(404).json({ error: "Usuário não encontrado" });
   return res.json(mapUser(updated));
+});
+
+/* ─── POST /users/:id/reset-token ────────────────────────── */
+// Admin only: generate a password-reset token for a user (shared via internal comms).
+router.post("/users/:id/reset-token", requireAuth, requireAdmin, async (req, res) => {
+  const id = parseInt(req.params.id as string);
+  if (isNaN(id)) return res.status(400).json({ error: "ID inválido" });
+
+  const [user] = await db.select({ id: usersTable.id, email: usersTable.email })
+    .from(usersTable).where(eq(usersTable.id, id)).limit(1);
+  if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+
+  // Prevent generating a token for yourself (extra precaution)
+  if (id === (req as any).authUserId) {
+    return res.status(400).json({ error: "Use 'Alterar senha' para resetar sua própria senha" });
+  }
+
+  const token     = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
+
+  await db.update(usersTable).set({
+    passwordResetToken:          token,
+    passwordResetTokenExpiresAt: expiresAt,
+    isTemporaryPassword:         true,
+  }).where(eq(usersTable.id, id));
+
+  return res.json({ token, expiresAt: expiresAt.toISOString() });
 });
 
 /* ─── DELETE /users/:id ────────────────────────────────────── */

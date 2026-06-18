@@ -267,6 +267,96 @@ export interface ThemeSettings {
   orgSlogan: string;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface TwoFactorSetupResponse {
+  secret: string;
+  qrCodeUrl: string;
+}
+
+export interface TwoFactorCodeInput {
+  code: string;
+}
+
+export interface ResetPasswordInput {
+  email: string;
+  token: string;
+  newPassword: string;
+}
+
+export interface ResetTokenResponse {
+  token: string;
+  expiresAt: string;
+}
+
+export type AnnouncementType = typeof AnnouncementType[keyof typeof AnnouncementType];
+
+
+export const AnnouncementType = {
+  info: 'info',
+  event: 'event',
+  alert: 'alert',
+} as const;
+
+export interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  type: AnnouncementType;
+  /** @nullable */
+  eventDate?: string | null;
+  isActive: boolean;
+  /** @nullable */
+  createdBy?: number | null;
+  /** @nullable */
+  createdByName?: string | null;
+  createdAt: string;
+  /** @nullable */
+  expiresAt?: string | null;
+}
+
+export type AnnouncementInputType = typeof AnnouncementInputType[keyof typeof AnnouncementInputType];
+
+
+export const AnnouncementInputType = {
+  info: 'info',
+  event: 'event',
+  alert: 'alert',
+} as const;
+
+export interface AnnouncementInput {
+  title: string;
+  content: string;
+  type: AnnouncementInputType;
+  /** @nullable */
+  eventDate?: string | null;
+  /** @nullable */
+  expiresAt?: string | null;
+}
+
+export type AnnouncementUpdateType = typeof AnnouncementUpdateType[keyof typeof AnnouncementUpdateType];
+
+
+export const AnnouncementUpdateType = {
+  info: 'info',
+  event: 'event',
+  alert: 'alert',
+} as const;
+
+export interface AnnouncementUpdate {
+  title?: string;
+  content?: string;
+  type?: AnnouncementUpdateType;
+  /** @nullable */
+  eventDate?: string | null;
+  isActive?: boolean;
+  /** @nullable */
+  expiresAt?: string | null;
+}
+
 export interface ThemeSettingsUpdate {
   darkMode?: boolean;
   primaryColor?: string;

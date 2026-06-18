@@ -7,6 +7,13 @@
  */
 
 export * from './activityItem';
+export * from './announcement';
+export * from './announcementInput';
+export * from './announcementInputType';
+export * from './announcementType';
+export * from './announcementUpdate';
+export * from './announcementUpdateType';
+export * from './changePasswordInput';
 export * from './channel';
 export * from './dashboardStats';
 export * from './deptActivity';
@@ -19,6 +26,8 @@ export * from './loginInput';
 export * from './message';
 export * from './messageInput';
 export * from './notification';
+export * from './resetPasswordInput';
+export * from './resetTokenResponse';
 export * from './statusCount';
 export * from './successResponse';
 export * from './task';
@@ -33,6 +42,8 @@ export * from './taskUpdatePriority';
 export * from './taskUpdateStatus';
 export * from './themeSettings';
 export * from './themeSettingsUpdate';
+export * from './twoFactorCodeInput';
+export * from './twoFactorSetupResponse';
 export * from './user';
 export * from './userInput';
 export * from './userInputRole';

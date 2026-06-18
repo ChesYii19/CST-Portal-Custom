@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "5eAT7ck-NbuPR6u33heKo"
+uri = "file://cst-portal-deploy-guide.zip"
+type = "unspecified"
+title = "Guia de Implantação — CST Portal"

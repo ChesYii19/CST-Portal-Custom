@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetDocuments, useDeleteDocument, getGetDocumentsQueryKey } from "@workspace/api-client-react";
+import { useGetDocuments, useDeleteDocument, useGetMe, getGetDocumentsQueryKey } from "@workspace/api-client-react";
 import { Search, Download, Trash2, Folder, X, Save, Plus, FileText, FileSpreadsheet, FileImage, File } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +31,9 @@ export default function Documents() {
   const [showModal,   setShowModal]  = useState(false);
   const [form, setForm] = useState({ name: '', dept: DEPTS[0], size: '1.5 MB', ext: 'pdf' });
   const [loading, setLoading] = useState(false);
+
+  const { data: me }      = useGetMe();
+  const canManage         = me?.role === 'admin' || me?.role === 'sector_manager';
 
   const { data: docs, isLoading } = useGetDocuments(
     { search: search || undefined },
@@ -96,11 +99,13 @@ export default function Documents() {
           <h1 className="text-2xl font-black text-primary m-0">Documentos</h1>
           <p className="text-muted-foreground text-sm">Repositório de arquivos institucionais</p>
         </div>
-        <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white border-none cursor-pointer hover:opacity-90 transition-all shadow-sm"
-          style={{ backgroundColor: CST.azul }}>
-          <Plus size={16} /> Novo Documento
-        </button>
+        {canManage && (
+          <button onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white border-none cursor-pointer hover:opacity-90 transition-all shadow-sm"
+            style={{ backgroundColor: CST.azul }}>
+            <Plus size={16} /> Novo Documento
+          </button>
+        )}
       </div>
 
       {/* Pastas de departamento */}
@@ -181,9 +186,11 @@ export default function Documents() {
                     <div className="flex flex-col items-center gap-2">
                       <Folder size={28} className="text-muted-foreground/30" />
                       <p className="text-muted-foreground text-sm">Nenhum documento encontrado.</p>
-                      <button onClick={() => setShowModal(true)} className="text-xs font-bold text-primary hover:underline cursor-pointer border-none bg-transparent mt-1">
-                        + Adicionar documento
-                      </button>
+                      {canManage && (
+                        <button onClick={() => setShowModal(true)} className="text-xs font-bold text-primary hover:underline cursor-pointer border-none bg-transparent mt-1">
+                          + Adicionar documento
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -216,10 +223,12 @@ export default function Documents() {
                             className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer transition-colors">
                             <Download size={15} />
                           </button>
-                          <button onClick={() => handleDelete(doc.id)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer transition-colors">
-                            <Trash2 size={15} />
-                          </button>
+                          {canManage && (
+                            <button onClick={() => handleDelete(doc.id)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent border-none text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer transition-colors">
+                              <Trash2 size={15} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -231,8 +240,8 @@ export default function Documents() {
         </div>
       </div>
 
-      {/* Modal Novo Documento */}
-      {showModal && (
+      {/* Modal Novo Documento — apenas para admin/gestor */}
+      {showModal && canManage && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-card rounded-2xl border border-border shadow-2xl max-w-md w-full p-6 space-y-4">
             <div className="flex justify-between items-center">

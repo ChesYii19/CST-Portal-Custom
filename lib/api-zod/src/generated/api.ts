@@ -45,6 +45,85 @@ export const LogoutResponse = zod.object({
 
 
 /**
+ * @summary Change temporary/own password
+ */
+export const ChangePasswordBody = zod.object({
+  "currentPassword": zod.string(),
+  "newPassword": zod.string()
+})
+
+export const ChangePasswordResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Generate 2FA QR code and secret
+ */
+export const Setup2faResponse = zod.object({
+  "secret": zod.string(),
+  "qrCodeUrl": zod.string()
+})
+
+
+/**
+ * @summary Enable 2FA after verifying TOTP code
+ */
+export const Enable2faBody = zod.object({
+  "code": zod.string()
+})
+
+export const Enable2faResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Verify TOTP code during login
+ */
+export const Verify2faBody = zod.object({
+  "code": zod.string()
+})
+
+export const Verify2faResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "role": zod.enum(['admin', 'sector_manager', 'employee']),
+  "dept": zod.string(),
+  "initials": zod.string(),
+  "color": zod.string(),
+  "status": zod.enum(['ativo', 'inativo'])
+})
+
+
+/**
+ * @summary Disable 2FA
+ */
+export const Disable2faBody = zod.object({
+  "code": zod.string()
+})
+
+export const Disable2faResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Reset password using a token
+ */
+export const ResetPasswordBody = zod.object({
+  "email": zod.string(),
+  "token": zod.string(),
+  "newPassword": zod.string()
+})
+
+export const ResetPasswordResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
  * @summary Get current user
  */
 export const GetMeResponse = zod.object({
@@ -85,6 +164,19 @@ export const CreateUserBody = zod.object({
   "role": zod.enum(['admin', 'sector_manager', 'employee']),
   "dept": zod.string(),
   "color": zod.string().optional()
+})
+
+
+/**
+ * @summary Generate a password-reset token for a user (admin only)
+ */
+export const GenerateResetTokenParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GenerateResetTokenResponse = zod.object({
+  "token": zod.string(),
+  "expiresAt": zod.string()
 })
 
 
@@ -373,6 +465,96 @@ export const UpdateThemeSettingsResponse = zod.object({
   "compactMode": zod.boolean(),
   "orgName": zod.string(),
   "orgSlogan": zod.string()
+})
+
+
+/**
+ * @summary List active announcements
+ */
+export const GetAnnouncementsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "type": zod.enum(['info', 'event', 'alert']),
+  "eventDate": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdByName": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+export const GetAnnouncementsResponse = zod.array(GetAnnouncementsResponseItem)
+
+
+/**
+ * @summary Create announcement (admin/manager)
+ */
+export const CreateAnnouncementBody = zod.object({
+  "title": zod.string(),
+  "content": zod.string(),
+  "type": zod.enum(['info', 'event', 'alert']),
+  "eventDate": zod.string().nullish(),
+  "expiresAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary List all announcements including inactive (admin/manager)
+ */
+export const GetAllAnnouncementsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "type": zod.enum(['info', 'event', 'alert']),
+  "eventDate": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdByName": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+export const GetAllAnnouncementsResponse = zod.array(GetAllAnnouncementsResponseItem)
+
+
+/**
+ * @summary Update announcement (admin/manager)
+ */
+export const UpdateAnnouncementParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAnnouncementBody = zod.object({
+  "title": zod.string().optional(),
+  "content": zod.string().optional(),
+  "type": zod.enum(['info', 'event', 'alert']).optional(),
+  "eventDate": zod.string().nullish(),
+  "isActive": zod.boolean().optional(),
+  "expiresAt": zod.string().nullish()
+})
+
+export const UpdateAnnouncementResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "type": zod.enum(['info', 'event', 'alert']),
+  "eventDate": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdBy": zod.number().nullish(),
+  "createdByName": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Delete announcement (admin/manager)
+ */
+export const DeleteAnnouncementParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteAnnouncementResponse = zod.object({
+  "success": zod.boolean()
 })
 
 
