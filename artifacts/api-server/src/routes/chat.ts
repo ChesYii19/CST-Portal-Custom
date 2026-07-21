@@ -151,6 +151,8 @@ router.delete("/messages/:id", requireAuth, async (req: Request, res: Response):
     res.status(403).json({ error: "Sem permissão" }); return;
   }
 
+  if (!existing) { res.status(404).json({ error: "Mensagem não encontrada" }); return; }
+
   await db.delete(messagesTable).where(eq(messagesTable.id, id));
   res.json({ success: true });
 });

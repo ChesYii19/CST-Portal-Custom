@@ -111,6 +111,13 @@ router.delete("/tasks/:id", requireAuth, async (req, res) => {
     return res.status(403).json({ error: "Sem permissão para excluir tarefas" });
   }
 
+  const [existing] = await db
+    .select({ id: tasksTable.id })
+    .from(tasksTable)
+    .where(eq(tasksTable.id, parsed.data.id))
+    .limit(1);
+  if (!existing) return res.status(404).json({ error: "Tarefa não encontrada" });
+
   await db.delete(tasksTable).where(eq(tasksTable.id, parsed.data.id));
   return res.json({ success: true });
 });

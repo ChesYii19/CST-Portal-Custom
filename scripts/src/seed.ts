@@ -1,4 +1,5 @@
 import { db, usersTable, channelsTable, messagesTable, documentsTable, tasksTable, notificationsTable, themeSettingsTable } from "@workspace/db";
+import type { User } from "@workspace/db";
 import bcrypt from "bcryptjs";
 
 async function seed() {
@@ -37,10 +38,10 @@ async function seed() {
   // Messages
   const messages = await db.select().from(messagesTable);
   if (messages.length === 0) {
-    const [seedUsers] = [await db.select().from(usersTable)];
-    const admin = seedUsers.find(u => u.role === "admin");
-    const gestor = seedUsers.find(u => u.role === "sector_manager");
-    const colab = seedUsers.find(u => u.dept === "Financeiro");
+    const seedUsers = await db.select().from(usersTable);
+    const admin = seedUsers.find((u: User) => u.role === "admin");
+    const gestor = seedUsers.find((u: User) => u.role === "sector_manager");
+    const colab = seedUsers.find((u: User) => u.dept === "Financeiro");
 
     if (admin && gestor && colab) {
       await db.insert(messagesTable).values([
@@ -90,7 +91,7 @@ async function seed() {
   const notifs = await db.select().from(notificationsTable);
   if (notifs.length === 0) {
     const seedUsers = await db.select().from(usersTable);
-    const notifData = seedUsers.flatMap((u) => [
+    const notifData = seedUsers.flatMap((u: User) => [
       { userId: u.id, text: "Reunião às 14h — Sala 2", time: "08:30", read: false },
       { userId: u.id, text: "Carlos enviou novo documento", time: "09:15", read: false },
       { userId: u.id, text: "Tarefa \"Relatório Q3\" atualizada", time: "10:00", read: true },

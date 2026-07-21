@@ -91,6 +91,13 @@ router.delete("/documents/:id", requireAuth, async (req, res) => {
     return res.status(403).json({ error: "Sem permissão para excluir documentos" });
   }
 
+  const [existing] = await db
+    .select({ id: documentsTable.id })
+    .from(documentsTable)
+    .where(eq(documentsTable.id, parsed.data.id))
+    .limit(1);
+  if (!existing) return res.status(404).json({ error: "Documento não encontrado" });
+
   await db.delete(documentsTable).where(eq(documentsTable.id, parsed.data.id));
   return res.json({ success: true });
 });

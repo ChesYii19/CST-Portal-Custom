@@ -178,6 +178,13 @@ router.delete("/users/:id", requireAuth, requireAdmin, async (req, res) => {
     return res.status(403).json({ error: "Não é possível remover sua própria conta" });
   }
 
+  const [existing] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.id, paramsParsed.data.id))
+    .limit(1);
+  if (!existing) return res.status(404).json({ error: "Usuário não encontrado" });
+
   await db.delete(usersTable).where(eq(usersTable.id, paramsParsed.data.id));
   return res.json({ success: true });
 });
