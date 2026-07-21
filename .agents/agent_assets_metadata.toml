@@ -6,3 +6,9 @@ id = "5eAT7ck-NbuPR6u33heKo"
 uri = "file://cst-portal-deploy-guide.zip"
 type = "unspecified"
 title = "Guia de Implantação — CST Portal"
+
+[[outputs]]
+id = "uKhaV_8TS_VIR5wbWl9Ej"
+uri = "file://cst-portal-export.zip"
+type = "unspecified"
+title = "Exportação completa do CST Portal"
