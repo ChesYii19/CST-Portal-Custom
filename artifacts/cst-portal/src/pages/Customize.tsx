@@ -70,6 +70,15 @@ export default function Customize() {
                 <input type="text" value={accent} onChange={(e) => setAccent(e.target.value)} className="flex-1 p-2 rounded-lg border border-border bg-background text-sm outline-none uppercase font-mono" />
               </div>
             </div>
+
+            <div>
+              <label className="text-[13px] font-bold text-muted-foreground block mb-2">Fonte</label>
+              <select value={font} onChange={(e) => setFont(e.target.value)} className="w-full p-2 rounded-lg border border-border bg-background text-sm outline-none">
+                <option value="'Montserrat', sans-serif">Montserrat</option>
+                <option value="'Inter', sans-serif">Inter</option>
+                <option value="'Segoe UI', sans-serif">Segoe UI</option>
+              </select>
+            </div>
           </div>
 
           <div className="bg-card rounded-xl border border-border shadow-sm p-6 space-y-5">
@@ -95,7 +104,7 @@ export default function Customize() {
             <Image size={18} className="text-primary" /> Pré-visualização
           </h2>
           
-          <div className="flex-1 bg-background rounded-lg border border-border p-6 flex flex-col justify-center items-center relative overflow-hidden" style={{ borderRadius: `${radius}px` }}>
+          <div className="flex-1 bg-background rounded-lg border border-border p-6 flex flex-col justify-center items-center relative overflow-hidden" style={{ borderRadius: `${radius}px`, fontFamily: font }}>
             <div className="w-full max-w-[240px] space-y-4">
               <div className="h-10 w-full rounded" style={{ backgroundColor: primary, borderRadius: `${radius}px` }}></div>
               <div className="h-20 w-full bg-card border border-border rounded shadow-sm" style={{ borderRadius: `${radius}px` }}>

@@ -38,12 +38,19 @@ export default function Announcements() {
   const [saving,     setSaving]     = useState(false);
   const [showAll,    setShowAll]    = useState(false);
 
+  const readResponse = async (response: Response) => {
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Erro na operação");
+    return data;
+  };
+
   const fetchItems = () => {
     const url = canManage ? '/api/announcements/all' : '/api/announcements';
+    setLoading(true);
     fetch(url, { credentials: 'include' })
-      .then(r => r.json())
+      .then(readResponse)
       .then(data => { setItems(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(() => { setLoading(false); });
+      .catch((error: Error) => { setLoading(false); toast({ variant: "destructive", description: error.message || "Erro ao carregar avisos" }); });
   };
 
   useEffect(() => { if (me !== undefined) fetchItems(); }, [me, canManage]);
@@ -78,7 +85,7 @@ export default function Announcements() {
     const url    = editing ? `/api/announcements/${editing.id}` : '/api/announcements';
 
     fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) })
-      .then(r => r.json())
+      .then(readResponse)
       .then(data => {
         setSaving(false);
         if (data.error) { toast({ variant: "destructive", description: data.error }); return; }
@@ -96,23 +103,25 @@ export default function Announcements() {
       credentials: 'include',
       body: JSON.stringify({ isActive: !ann.isActive }),
     })
-      .then(r => r.json())
+      .then(readResponse)
       .then(data => {
         if (data.error) { toast({ variant: "destructive", description: data.error }); return; }
         toast({ description: ann.isActive ? "Aviso desativado" : "Aviso ativado" });
         fetchItems();
-      });
+      })
+      .catch((error: Error) => toast({ variant: "destructive", description: error.message || "Erro ao atualizar aviso" }));
   };
 
   const handleDelete = (id: number) => {
     if (!confirm('Excluir este aviso permanentemente?')) return;
     fetch(`/api/announcements/${id}`, { method: 'DELETE', credentials: 'include' })
-      .then(r => r.json())
+      .then(readResponse)
       .then(data => {
         if (data.error) { toast({ variant: "destructive", description: data.error }); return; }
         toast({ description: "Aviso excluído" });
         fetchItems();
-      });
+      })
+      .catch((error: Error) => toast({ variant: "destructive", description: error.message || "Erro ao excluir aviso" }));
   };
 
   const formatDate = (iso: string | null | undefined) => {

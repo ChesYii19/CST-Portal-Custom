@@ -191,7 +191,7 @@ export default function Admin() {
                 ) : filteredUsers?.length === 0 ? (
                   <tr><td colSpan={6} className="p-8 text-center text-muted-foreground text-sm">Nenhum usuário encontrado.</td></tr>
                 ) : (
-                  filteredUsers?.map(u => {
+                  Array.isArray(filteredUsers) && filteredUsers.map(u => {
                     const roleConf = ROLE_CONFIG[u.role as keyof typeof ROLE_CONFIG] || ROLE_CONFIG.employee;
                     return (
                       <tr key={u.id} className="border-b border-border last:border-0 hover:bg-muted/40 transition-colors">

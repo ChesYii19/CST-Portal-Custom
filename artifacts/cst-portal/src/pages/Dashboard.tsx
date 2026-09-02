@@ -21,6 +21,9 @@ export default function Dashboard() {
   if (!stats) return <div className="p-8">Erro ao carregar dados do dashboard</div>;
 
   const PIE_COLORS = [CST.mata, CST.amarelo, CST.agua];
+  const weeklyActivity = Array.isArray(stats.weeklyActivity) ? stats.weeklyActivity : [];
+  const tasksByStatus = Array.isArray(stats.tasksByStatus) ? stats.tasksByStatus : [];
+  const departmentActivity = Array.isArray(stats.departmentActivity) ? stats.departmentActivity : [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-10">
@@ -56,7 +59,7 @@ export default function Dashboard() {
           <p className="text-xs text-muted-foreground mb-4">Ações realizadas por dia</p>
           <div className="h-[220px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={stats.weeklyActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={weeklyActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)', fontFamily: 'Montserrat' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} />
                 <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-foreground)', fontFamily: 'Montserrat', fontSize: 12 }} />
@@ -72,8 +75,8 @@ export default function Dashboard() {
           <div className="h-[220px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={stats.tasksByStatus} innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none">
-                  {stats.tasksByStatus.map((entry, index) => (
+                <Pie data={tasksByStatus} innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value" stroke="none">
+                  {tasksByStatus.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
@@ -82,7 +85,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
           <div className="flex justify-center gap-4 text-xs text-muted-foreground font-semibold">
-            {stats.tasksByStatus.map((s: any, i: number) => (
+            {tasksByStatus.map((s: any, i: number) => (
               <div key={i} className="flex items-center gap-1.5">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[i] }} />
                 {s.name}
@@ -96,7 +99,7 @@ export default function Dashboard() {
           <p className="text-xs text-muted-foreground mb-4">Tarefas e documentos por setor</p>
           <div className="h-[220px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.departmentActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }} barSize={14} barGap={3}>
+              <BarChart data={departmentActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }} barSize={14} barGap={3}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)', fontFamily: 'Montserrat' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }} />
                 <Tooltip cursor={{ fill: 'var(--color-muted)', opacity: 0.3 }} contentStyle={{ borderRadius: 10, border: '1px solid var(--color-border)', backgroundColor: 'var(--color-card)', color: 'var(--color-foreground)', fontFamily: 'Montserrat', fontSize: 12 }} />

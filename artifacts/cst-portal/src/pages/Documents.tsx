@@ -86,8 +86,7 @@ export default function Documents() {
   };
 
   const formatDate = (d: string) => {
-    try { return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }); }
-    catch { return d; }
+    return d;
   };
 
   const deptCounts = DEPTS.reduce((acc, dept) => {
