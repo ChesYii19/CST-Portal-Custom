@@ -42,7 +42,13 @@ export default function Chat() {
   const handleSend = () => {
     if (!text.trim() || !activeChannel) return;
     createMsg.mutate({ data: { channelId: activeChannel, text } }, {
-      onSuccess: () => { setText(""); invalidate(); }
+      onSuccess: () => { setText(""); invalidate(); },
+      onError: (error: any) => {
+        toast({
+          variant: "destructive",
+          description: error?.data?.error || error?.message || "Erro ao enviar mensagem",
+        });
+      },
     });
   };
 
@@ -104,7 +110,7 @@ export default function Chat() {
           Canais
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {channels?.map(c => (
+          {Array.isArray(channels) && channels.map(c => (
             <button
               key={c.id}
               onClick={() => setActiveChannel(c.id)}
@@ -150,7 +156,7 @@ export default function Chat() {
               Nenhuma mensagem neste canal ainda.
             </div>
           ) : (
-            messages?.map(msg => {
+            Array.isArray(messages) && messages.map(msg => {
               const isOwn = msg.userId === user?.id;
               const isEditing = editingId === msg.id;
 

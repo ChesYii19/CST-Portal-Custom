@@ -61,7 +61,11 @@ export default function Documents() {
       credentials: 'include',
       body: JSON.stringify(form),
     })
-      .then(r => r.json())
+      .then(async r => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || "Erro ao adicionar documento");
+        return data;
+      })
       .then(() => {
         toast({ description: "Documento adicionado" });
         queryClient.invalidateQueries({ queryKey: getGetDocumentsQueryKey() });
@@ -195,7 +199,7 @@ export default function Documents() {
                   </td>
                 </tr>
               ) : (
-                filteredDocs?.map(doc => {
+                Array.isArray(filteredDocs) && filteredDocs.map(doc => {
                   const conf  = getExtConf(doc.ext);
                   const Icon  = conf.icon;
                   return (

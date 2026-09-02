@@ -38,6 +38,14 @@ export default function Tasks() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: getGetTasksQueryKey() });
 
+  const showMutationError = (error: any, fallback: string) => {
+    const message = error?.data?.error || error?.message;
+    toast({
+      variant: "destructive",
+      description: error?.status === 403 ? "Você não tem permissão para esta ação" : message || fallback,
+    });
+  };
+
   const handleDragStart = (e: React.DragEvent, id: number) => {
     setDraggingId(id);
     e.dataTransfer.effectAllowed = "move";
@@ -55,14 +63,18 @@ export default function Tasks() {
     setDraggingOver(null);
     if (!draggingId) return;
     updateTask.mutate({ id: draggingId, data: { status: targetStatus } }, {
-      onSuccess: () => { toast({ description: "Tarefa movida" }); invalidate(); }
+      onSuccess: () => { toast({ description: "Tarefa movida" }); invalidate(); },
+      onError: (error) => showMutationError(error, "Erro ao mover tarefa"),
     });
     setDraggingId(null);
   };
 
   const handleDelete = (id: number) => {
     if (!confirm('Excluir esta tarefa?')) return;
-    deleteTask.mutate({ id }, { onSuccess: () => { toast({ description: "Tarefa excluída" }); invalidate(); } });
+    deleteTask.mutate({ id }, {
+      onSuccess: () => { toast({ description: "Tarefa excluída" }); invalidate(); },
+      onError: (error) => showMutationError(error, "Erro ao excluir tarefa"),
+    });
   };
 
   const handleEdit = (task: any) => {
@@ -72,7 +84,8 @@ export default function Tasks() {
 
   const handleEditSave = (id: number) => {
     updateTask.mutate({ id, data: { ...editForm, priority: editForm.priority as typeof PRIORITIES[number] } }, {
-      onSuccess: () => { toast({ description: "Tarefa atualizada" }); invalidate(); setEditingId(null); }
+      onSuccess: () => { toast({ description: "Tarefa atualizada" }); invalidate(); setEditingId(null); },
+      onError: (error) => showMutationError(error, "Erro ao atualizar tarefa"),
     });
   };
 
@@ -87,7 +100,10 @@ export default function Tasks() {
         setCreateForm({ title: '', dept: DEPTS[0], priority: 'media', status: 'todo' });
         setLoading(false);
       },
-      onError: () => setLoading(false),
+      onError: (error) => {
+        setLoading(false);
+        showMutationError(error, "Erro ao criar tarefa");
+      },
     });
   };
 

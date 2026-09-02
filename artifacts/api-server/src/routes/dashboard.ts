@@ -25,14 +25,15 @@ router.get("/dashboard/stats", requireAuth, async (req, res) => {
   const depts = ["Admin", "RH", "Financeiro", "Projetos"];
   const departmentActivity = depts.map((dept) => ({
     name: dept,
-    tarefas: tasks.filter((t) => t.dept.toLowerCase().includes(dept.toLowerCase()) || (dept === "Admin" && t.dept === "Administração")).length || Math.floor(Math.random() * 10) + 2,
-    docs: docs.filter((d) => d.dept.toLowerCase().includes(dept.toLowerCase()) || (dept === "Admin" && d.dept === "Administração")).length || Math.floor(Math.random() * 15) + 3,
+    tarefas: tasks.filter((t) => t.dept.toLowerCase().includes(dept.toLowerCase()) || (dept === "Admin" && t.dept === "Administração")).length,
+    docs: docs.filter((d) => d.dept.toLowerCase().includes(dept.toLowerCase()) || (dept === "Admin" && d.dept === "Administração")).length,
   }));
 
   const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-  const weeklyActivity = days.map((day, i) => ({
+  const dayIndexes: Record<string, number> = { Seg: 1, Ter: 2, Qua: 3, Qui: 4, Sex: 5, Sáb: 6 };
+  const weeklyActivity = days.map((day) => ({
     day,
-    v: messages.length > 0 ? Math.max(1, messages.length - i * 2) : Math.floor(Math.random() * 12) + 1,
+    v: messages.filter((message) => new Date(message.createdAt).getDay() === dayIndexes[day]).length,
   }));
 
   const recentActivity = [
