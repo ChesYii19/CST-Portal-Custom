@@ -41,11 +41,24 @@ app.use(
 );
 
 /* ─── CORS ───────────────────────────────────────────────── */
-// origin:true reflects the request Origin back — required for Replit's dynamic preview domains.
-// Credentials are needed for the session cookie to be sent cross-site.
+// Allow only known origins in dev/prod to avoid cross-site credential leakage.
+const allowedCorsOrigins = new Set(
+  (process.env.CORS_ORIGINS ?? "http://localhost:25625,http://127.0.0.1:25625")
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean),
+);
+
 app.use(
   cors({
-    origin: true,
+    origin(origin, callback) {
+      if (!origin || allowedCorsOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true,
   }),
 );
@@ -77,10 +90,10 @@ app.use(
     saveUninitialized: false,
     name: "cst.sid", // Rename from default "connect.sid" — obscures server technology
     cookie: {
-      secure: true,      // Replit always proxies via HTTPS
-      httpOnly: true,    // Not accessible via JS (XSS mitigation)
-      maxAge: 8 * 60 * 60 * 1000, // 8 hours (reduced from 7 days — least-privilege)
-      sameSite: "none",  // Required: preview runs in a cross-site iframe
+      secure: process.env.NODE_ENV === "production" || process.env.REPL_ID !== undefined,
+      httpOnly: true,
+      maxAge: 8 * 60 * 60 * 1000,
+      sameSite: process.env.NODE_ENV === "production" || process.env.REPL_ID !== undefined ? "none" : "lax",
     },
   }),
 );
