@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
-import { useGetMe, useLogout } from "@workspace/api-client-react";
+import { getGetNotificationsQueryKey, useGetMe, useGetNotifications, useLogout, useMarkAllNotificationsRead } from "@workspace/api-client-react";
 import { LayoutDashboard, MessageSquare, FileText, CheckSquare, Settings, LogOut, Bell, Moon, Sun, Megaphone } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
 /* Brand guide exact hex values */
@@ -21,9 +22,13 @@ const PALETTE = Object.values(CST);
 export function Shell({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const { data: user, isLoading } = useGetMe();
+  const { data: notifications, isLoading: notificationsLoading, isError: notificationsError } = useGetNotifications({ query: { enabled: !!user, queryKey: getGetNotificationsQueryKey() } });
+  const markAllNotificationsRead = useMarkAllNotificationsRead();
+  const queryClient = useQueryClient();
   const logoutMutation = useLogout();
   const { toast } = useToast();
   const [dark, setDark] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -34,6 +39,21 @@ export function Shell({ children }: { children: React.ReactNode }) {
     const nextDark = !dark;
     setDark(nextDark);
     document.documentElement.classList.toggle("dark", nextDark);
+  };
+
+  const unreadCount = notifications?.filter(notification => !notification.read).length || 0;
+
+  const handleMarkAllNotificationsRead = () => {
+    markAllNotificationsRead.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.setQueryData(getGetNotificationsQueryKey(), (current: typeof notifications) =>
+          current?.map(notification => ({ ...notification, read: true })) || [],
+        );
+        queryClient.invalidateQueries({ queryKey: getGetNotificationsQueryKey() });
+        toast({ description: "Notificações marcadas como lidas" });
+      },
+      onError: () => toast({ variant: "destructive", description: "Erro ao marcar notificações como lidas" }),
+    });
   };
 
   useEffect(() => {
@@ -50,6 +70,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { id: 'documents',      label: 'Documentos', icon: FileText,   path: '/documents',      accent: CST.champanhe },
     { id: 'tasks',          label: 'Tarefas',    icon: CheckSquare, path: '/tasks',         accent: CST.mata },
     { id: 'announcements',  label: 'Avisos',     icon: Megaphone,   path: '/announcements', accent: CST.rosa },
+    { id: 'customize', label: 'Personalizar', icon: Settings, path: '/customize', accent: CST.ceu },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Settings, path: '/admin', accent: CST.amarelo }] : []),
   ];
 
@@ -93,15 +114,44 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Bottom actions */}
-        <div className="p-4 border-t border-white/10 space-y-3">
+        <div className="p-4 border-t border-white/10 space-y-3 relative">
           <div className="flex gap-2">
             <button onClick={toggleDark} className="flex-1 border-none rounded-lg p-2 cursor-pointer text-white flex items-center justify-center hover:bg-white/15 transition-colors" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
               {dark ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button className="flex-1 border-none rounded-lg p-2 cursor-pointer text-white flex items-center justify-center hover:bg-white/15 transition-colors relative" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+            <button onClick={() => setNotificationsOpen(open => !open)} aria-label="Notificações" className="flex-1 border-none rounded-lg p-2 cursor-pointer text-white flex items-center justify-center hover:bg-white/15 transition-colors relative" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
               <Bell size={18} />
+              {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-400" aria-label={`${unreadCount} não lidas`} />}
             </button>
           </div>
+
+          {notificationsOpen && (
+            <div className="absolute bottom-16 left-full ml-2 w-72 max-w-[calc(100vw-2rem)] bg-card text-foreground border border-border rounded-xl shadow-xl z-20 overflow-hidden">
+              <div className="p-3 border-b border-border flex items-center justify-between gap-2">
+                <span className="text-sm font-bold">Notificações</span>
+                <button onClick={handleMarkAllNotificationsRead} disabled={markAllNotificationsRead.isPending || unreadCount === 0}
+                  className="text-[10px] font-bold text-primary bg-transparent border-none cursor-pointer disabled:opacity-40">
+                  Marcar como lidas
+                </button>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                {notificationsLoading ? (
+                  <p className="p-4 text-xs text-muted-foreground">Carregando notificações...</p>
+                ) : notificationsError ? (
+                  <p className="p-4 text-xs text-destructive">Não foi possível carregar as notificações.</p>
+                ) : notifications?.length ? (
+                  notifications.map(notification => (
+                    <div key={notification.id} className={`p-3 border-b border-border last:border-0 ${notification.read ? 'opacity-60' : 'bg-primary/5'}`}>
+                      <p className="text-xs font-medium m-0">{notification.text}</p>
+                      <span className="text-[10px] text-muted-foreground">{notification.time}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="p-4 text-xs text-muted-foreground">Nenhuma notificação.</p>
+                )}
+              </div>
+            </div>
+          )}
           
           <Link href="/profile" className="flex items-center gap-3 rounded-lg p-2 cursor-pointer hover:bg-white/10 transition-colors" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
             <div className="w-8 h-8 rounded-full flex items-center justify-center font-black text-[11px] text-white shrink-0" style={{ background: user.color || CST.agua }}>
