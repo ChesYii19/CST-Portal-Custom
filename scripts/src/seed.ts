@@ -5,13 +5,19 @@ import bcrypt from "bcryptjs";
 async function seed() {
   console.log("Seeding database...");
 
+  const requiredPassword = (name: string): string => {
+    const password = process.env[name];
+    if (!password) throw new Error(`${name} must be set for local seed`);
+    return password;
+  };
+
   // Users
   const users = await db.select().from(usersTable);
   if (users.length === 0) {
-    const adminHash = await bcrypt.hash("Admin@2026", 10);
-    const gestorHash = await bcrypt.hash("Gestor@2026", 10);
-    const colaborHash = await bcrypt.hash("Colab@2026", 10);
-    const joaoHash = await bcrypt.hash("Joao@2026", 10);
+    const adminHash = await bcrypt.hash(requiredPassword("DEV_ADMIN_PASSWORD"), 10);
+    const gestorHash = await bcrypt.hash(requiredPassword("DEV_MANAGER_PASSWORD"), 10);
+    const colaborHash = await bcrypt.hash(requiredPassword("DEV_EMPLOYEE_PASSWORD"), 10);
+    const joaoHash = await bcrypt.hash(requiredPassword("DEV_INACTIVE_PASSWORD"), 10);
 
     await db.insert(usersTable).values([
       { name: "Ana Beatriz", email: "admin@cst.org.br", passwordHash: adminHash, role: "admin", dept: "Administração", initials: "AB", color: "#2E5A6A", status: "ativo", loginAttempts: 0 },

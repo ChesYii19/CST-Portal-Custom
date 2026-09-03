@@ -149,11 +149,15 @@ pm2 startup
 
 Após rodar o seed, os seguintes usuários estarão disponíveis:
 
-| E-mail | Senha | Papel |
-|--------|-------|-------|
-| admin@cst.org.br | Admin@2026 | Administrador |
-| gestor@cst.org.br | Gestor@2026 | Gestor de Setor |
-| colab@cst.org.br | Colab@2026 | Colaborador |
+| E-mail | Papel |
+|--------|-------|
+| admin@cst.org.br | Administrador |
+| gestor@cst.org.br | Gestor de Setor |
+| colab@cst.org.br | Colaborador |
+
+As senhas de desenvolvimento devem ser fornecidas pelo ambiente seguro ao
+executar o seed (`DEV_ADMIN_PASSWORD`, `DEV_MANAGER_PASSWORD` e
+`DEV_EMPLOYEE_PASSWORD`). Não registre valores de senha nesta documentação.
 
 > ⚠️ **Troque as senhas imediatamente após o primeiro login em produção.**  
 > Use a funcionalidade de redefinição de senha com token para usuários existentes.
