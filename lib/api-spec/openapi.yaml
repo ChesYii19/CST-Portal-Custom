@@ -29,6 +29,8 @@ tags:
     description: Theme and customization settings
   - name: announcements
     description: Announcements and events
+  - name: data-library
+    description: Data Library validation endpoint
 paths:
   /healthz:
     get:
@@ -400,6 +402,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
+  /data-library:
+    get:
+      operationId: getDataLibrary
+      tags: [data-library]
+      summary: Get Data Library validation status
+      responses:
+        "200":
+          description: Empty Data Library response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataLibraryResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /tasks:
     get:
       operationId: getTasks
@@ -634,6 +655,16 @@ paths:
 
 components:
   schemas:
+    DataLibraryResponse:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: {}
+        total:
+          type: integer
+          minimum: 0
     HealthStatus:
       type: object
       properties:

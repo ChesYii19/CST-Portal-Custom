@@ -26,6 +26,7 @@ import type {
   ChangePasswordInput,
   Channel,
   DashboardStats,
+  DataLibraryResponse,
   Document,
   ErrorResponse,
   GetDocumentsParams,
@@ -1528,6 +1529,83 @@ export const useDeleteDocument = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDeleteDocumentMutationOptions(options));
     }
+
+export const getGetDataLibraryUrl = () => {
+
+
+
+
+  return `/api/data-library`
+}
+
+/**
+ * @summary Get Data Library validation status
+ */
+export const getDataLibrary = async ( options?: RequestInit): Promise<DataLibraryResponse> => {
+
+  return customFetch<DataLibraryResponse>(getGetDataLibraryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDataLibraryQueryKey = () => {
+    return [
+    `/api/data-library`
+    ] as const;
+    }
+
+
+export const getGetDataLibraryQueryOptions = <TData = Awaited<ReturnType<typeof getDataLibrary>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDataLibrary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDataLibraryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDataLibrary>>> = ({ signal }) => getDataLibrary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDataLibrary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDataLibraryQueryResult = NonNullable<Awaited<ReturnType<typeof getDataLibrary>>>
+export type GetDataLibraryQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get Data Library validation status
+ */
+
+export function useGetDataLibrary<TData = Awaited<ReturnType<typeof getDataLibrary>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDataLibrary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDataLibraryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetTasksUrl = () => {
 

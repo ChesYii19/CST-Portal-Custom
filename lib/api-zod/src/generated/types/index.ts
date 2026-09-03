@@ -16,6 +16,7 @@ export * from './announcementUpdateType';
 export * from './changePasswordInput';
 export * from './channel';
 export * from './dashboardStats';
+export * from './dataLibraryResponse';
 export * from './deptActivity';
 export * from './document';
 export * from './errorResponse';

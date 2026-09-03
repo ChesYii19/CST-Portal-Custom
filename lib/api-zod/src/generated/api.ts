@@ -292,6 +292,19 @@ export const DeleteDocumentResponse = zod.object({
 
 
 /**
+ * @summary Get Data Library validation status
+ */
+export const getDataLibraryResponseTotalMin = 0;
+
+
+
+export const GetDataLibraryResponse = zod.object({
+  "items": zod.array(zod.unknown()),
+  "total": zod.number().min(getDataLibraryResponseTotalMin)
+})
+
+
+/**
  * @summary List tasks grouped by status
  */
 export const GetTasksResponse = zod.object({

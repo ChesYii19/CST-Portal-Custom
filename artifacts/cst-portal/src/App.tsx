@@ -14,6 +14,7 @@ import Admin from "@/pages/Admin";
 import Profile from "@/pages/Profile";
 import Announcements from "@/pages/Announcements";
 import ResetPassword from "@/pages/ResetPassword";
+import DataLibrary from "@/pages/DataLibrary";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/admin"><Shell><Admin /></Shell></Route>
       <Route path="/profile"><Shell><Profile /></Shell></Route>
       <Route path="/announcements"><Shell><Announcements /></Shell></Route>
+      <Route path="/data-library"><Shell><DataLibrary /></Shell></Route>
       <Route path="/reset-password" component={ResetPassword} />
 
       <Route component={NotFound} />

@@ -5,6 +5,12 @@
  * CST Portal Internal API
  * OpenAPI spec version: 0.1.0
  */
+export interface DataLibraryResponse {
+  items: unknown[];
+  /** @minimum 0 */
+  total: number;
+}
+
 export interface HealthStatus {
   status: string;
 }

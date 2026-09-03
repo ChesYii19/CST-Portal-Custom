@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { getGetNotificationsQueryKey, useGetMe, useGetNotifications, useLogout, useMarkAllNotificationsRead } from "@workspace/api-client-react";
-import { LayoutDashboard, MessageSquare, FileText, CheckSquare, Settings, LogOut, Bell, Moon, Sun, Megaphone } from "lucide-react";
+import { LayoutDashboard, MessageSquare, FileText, CheckSquare, Settings, LogOut, Bell, Moon, Sun, Megaphone, Database } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -70,6 +70,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { id: 'documents',      label: 'Documentos', icon: FileText,   path: '/documents',      accent: CST.champanhe },
     { id: 'tasks',          label: 'Tarefas',    icon: CheckSquare, path: '/tasks',         accent: CST.mata },
     { id: 'announcements',  label: 'Avisos',     icon: Megaphone,   path: '/announcements', accent: CST.rosa },
+    { id: 'data-library',   label: 'Data Library', icon: Database,   path: '/data-library',  accent: CST.agua },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Settings, path: '/admin', accent: CST.amarelo }] : []),
   ];
 

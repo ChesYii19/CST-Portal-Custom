@@ -9,6 +9,7 @@ import notificationsRouter from "./notifications";
 import dashboardRouter from "./dashboard";
 import settingsRouter from "./settings";
 import announcementsRouter from "./announcements";
+import dataLibraryRouter from "./data-library";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(notificationsRouter);
 router.use(dashboardRouter);
 router.use(settingsRouter);
 router.use(announcementsRouter);
+router.use(dataLibraryRouter);
 
 export default router;
