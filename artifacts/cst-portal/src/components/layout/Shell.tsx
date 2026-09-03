@@ -70,7 +70,6 @@ export function Shell({ children }: { children: React.ReactNode }) {
     { id: 'documents',      label: 'Documentos', icon: FileText,   path: '/documents',      accent: CST.champanhe },
     { id: 'tasks',          label: 'Tarefas',    icon: CheckSquare, path: '/tasks',         accent: CST.mata },
     { id: 'announcements',  label: 'Avisos',     icon: Megaphone,   path: '/announcements', accent: CST.rosa },
-    { id: 'customize', label: 'Personalizar', icon: Settings, path: '/customize', accent: CST.ceu },
     ...(user?.role === 'admin' ? [{ id: 'admin', label: 'Admin', icon: Settings, path: '/admin', accent: CST.amarelo }] : []),
   ];
 

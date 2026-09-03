@@ -12,7 +12,6 @@ import Documents from "@/pages/Documents";
 import Tasks from "@/pages/Tasks";
 import Admin from "@/pages/Admin";
 import Profile from "@/pages/Profile";
-import Customize from "@/pages/Customize";
 import Announcements from "@/pages/Announcements";
 import ResetPassword from "@/pages/ResetPassword";
 
@@ -30,7 +29,6 @@ function Router() {
       <Route path="/tasks"><Shell><Tasks /></Shell></Route>
       <Route path="/admin"><Shell><Admin /></Shell></Route>
       <Route path="/profile"><Shell><Profile /></Shell></Route>
-      <Route path="/customize"><Shell><Customize /></Shell></Route>
       <Route path="/announcements"><Shell><Announcements /></Shell></Route>
       <Route path="/reset-password" component={ResetPassword} />
 

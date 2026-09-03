@@ -107,9 +107,8 @@ export default function Home() {
             { icon: FileText, label: 'Documentos', desc: 'Repositório central de arquivos institucionais', color: CST.champanhe },
             { icon: CheckSquare, label: 'Tarefas', desc: 'Kanban colaborativo com drag-and-drop', color: CST.mata },
             { icon: Settings, label: 'Administração', desc: 'Gestão de usuários e configurações', color: CST.amarelo },
-            { icon: Sun, label: 'Personalização', desc: 'Tema, cores e aparência do portal', color: CST.ceu },
           ].map((f, i) => (
-            <div key={i} className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer group" onClick={() => f.label === 'Personalização' ? setLocation(user ? '/customize' : '/login') : handleLogin()}>
+            <div key={i} className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer group" onClick={handleLogin}>
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ backgroundColor: `${f.color}22`, color: f.color }}>
                 <f.icon size={24} />
               </div>

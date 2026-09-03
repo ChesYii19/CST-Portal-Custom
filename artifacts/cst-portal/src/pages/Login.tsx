@@ -5,12 +5,6 @@ import { Eye, EyeOff, Lock, Mail, ArrowRight, Moon, Sun, Shield, KeyRound, Check
 import { useToast } from "@/hooks/use-toast";
 import { CST, PALETTE } from "@/lib/brand";
 
-const CREDENTIALS = [
-  { email: 'admin@cst.org.br',  password: 'Admin@2026',  role: 'Administrador', color: CST.azul },
-  { email: 'gestor@cst.org.br', password: 'Gestor@2026', role: 'Gestor',         color: CST.agua },
-  { email: 'colab@cst.org.br',  password: 'Colab@2026',  role: 'Colaborador',    color: CST.mata },
-];
-
 type Step = 'login' | 'verify2fa' | 'changePassword';
 
 export default function Login() {
@@ -130,11 +124,6 @@ export default function Login() {
       .catch(() => { setChangingPw(false); toast({ variant: "destructive", description: "Erro de conexão" }); });
   };
 
-  const fillCredential = (cred: typeof CREDENTIALS[0]) => {
-    setEmail(cred.email);
-    setPassword(cred.password);
-  };
-
   // ─── Left panel (shared across steps) ────────────────────────────────────────
   const LeftPanel = () => (
     <div className="hidden lg:flex lg:w-[52%] flex-col relative overflow-hidden" style={{ backgroundColor: CST.azul }}>
@@ -198,21 +187,6 @@ export default function Login() {
             <div className="mb-8">
               <h2 className="text-2xl font-black text-foreground m-0 mb-1">Bem-vinda de volta</h2>
               <p className="text-muted-foreground text-sm">Acesse sua conta para continuar</p>
-            </div>
-            <div className="bg-muted/60 rounded-xl p-4 mb-6 border border-border">
-              <p className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wide">Acesso rápido — Contas de teste</p>
-              <div className="space-y-1.5">
-                {CREDENTIALS.map((c) => (
-                  <button key={c.email} onClick={() => fillCredential(c)}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-background transition-colors cursor-pointer border border-transparent hover:border-border text-left bg-transparent">
-                    <div className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-[9px] font-black text-white" style={{ background: c.color }}>
-                      {c.role[0]}
-                    </div>
-                    <span className="text-xs text-foreground font-semibold flex-1">{c.email}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: c.color }}>{c.role}</span>
-                  </button>
-                ))}
-              </div>
             </div>
             <div className="space-y-4 mb-6">
               <div>
